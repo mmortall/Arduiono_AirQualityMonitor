@@ -1,5 +1,6 @@
-#define USE_ADAFRUT_DIPLAY
-//#define USE_TOUCH_DIPLAY
+//#define PLAY_SOUND
+//#define USE_ADAFRUT_DIPLAY
+#define USE_TOUCH_DIPLAY
 
 #include <SoftwareSerial.h>
 #include <Wire.h>
@@ -24,8 +25,7 @@ unsigned char response[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 int led = 10;      
 int ledPin = 9;       
 int ledPinAlarm = 8;  
-int ledPinPesdec = 7;  
-int ledPinPesdecPolniy = 6;
+int ledPinPesdecPolniy = 7;  
 int gasPinAnalog = 7;
 int brightness = 0;    // how bright the LED is
 int fadeAmount = 20;    // how many points to fade the LED by
@@ -41,7 +41,6 @@ void setup() {
 
   pinMode(ledPin, OUTPUT);
   pinMode(ledPinAlarm, OUTPUT);
-  pinMode(ledPinPesdec, OUTPUT);
   pinMode(ledPinPesdecPolniy, OUTPUT);
   pinMode(led, OUTPUT);
 
@@ -53,9 +52,8 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 #else
   TFTscreen.begin();
-  TFTscreen.background(0,0,0);
-  TFTscreen.stroke(255,255,255); //test color
-  TFTscreen.setTextSize(2);
+  TFTscreen.fillScreen(ILI9341_BLACK);
+  //TFTscreen.stroke(255,255,255); //test color
 #endif
 
   DisplayRender();
@@ -64,7 +62,14 @@ void setup() {
 void loop() 
 {
   ClearDisplay();
-  SetTextColor(WHITE);
+  SetTextColor(ILI9341_WHITE);
+
+  TFTscreen.setTextSize(5);
+  DisplaySetCursor(0, 0);
+  DisplayPrint("Test");
+  delay(500);
+
+  return;
 
   //read data from CO2 sensor
   mySerial.write(cmd, 9);
@@ -99,16 +104,13 @@ void loop()
 
     double res = 0;
 
-    res = (double)ppm - (double)700;
+    res = (double)ppm - (double)1000;
     updateBrightness(ledPin, res / 300.0, ppm);
 
-    res = (double)ppm - (double)1000;
+    res = (double)ppm - (double)2000;
     updateBrightness(ledPinAlarm, res / 500.0, ppm);
 
-    res = (double)ppm - (double)1500;
-    updateBrightness(ledPinPesdec, res / 500.0, ppm);    
-
-    res = (double)ppm - (double)2000;
+    res = (double)ppm - (double)3000;
     updateBrightness(ledPinPesdecPolniy, res / 500.0, ppm);
 
     //Serial.print(ppm);
