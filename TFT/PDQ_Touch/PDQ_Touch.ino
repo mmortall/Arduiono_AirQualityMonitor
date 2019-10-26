@@ -26,9 +26,11 @@
 #include <Adafruit_GFX.h>				// PDQ: Core graphics library
 #include "PDQ_ILI9341_config.h"			// PDQ: ST7735 pins and other setup for this sketch
 #include <Adafruit_ILI9341.h>			// PDQ: Hardware-specific driver library
+#include <U8g2_for_Adafruit_GFX.h>
 #include <Fonts/FreeMonoBoldOblique12pt7b.h>
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
+U8G2_FOR_ADAFRUIT_GFX u8g2_for_adafruit_gfx;
 
 #define ttclk    9  
 #define ttcs    6    
@@ -55,6 +57,8 @@ void setup()
 {
   Serial.begin(9600);
   mySerial.begin(9600);
+  
+  delay(200);
 /*  
 //	OSCCAL = 0xae;	// ~20MHz ATtiny overclock
 	OSCCAL = 0xd0;	// ~25MHz ATtiny overclock
@@ -68,6 +72,7 @@ void setup()
 #endif*/
 
 	tft.begin();
+  u8g2_for_adafruit_gfx.begin(tft); 
   //tft.cp437(true);
 
   myTouch.InitTouch();
@@ -93,8 +98,9 @@ void loop(void)
 	}*/
  
  tft.fillScreen(ILI9341_BLACK);
+ tft.setCursor(0, 0);
 
-	tft.setCursor(0, 0);
+/*	tft.setCursor(0, 0);
 	tft.setTextColor(ILI9341_MAGENTA);
 	tft.setTextSize(2);
 
@@ -139,23 +145,50 @@ void loop(void)
 	tft.print(F("Benchmark Completed!"));
  tft.setTextSize(0);
   tft.println(utf8rus("Тест вывод текста на русском"));
+*/
+tft.println(F(""));
+  //tft.clearDisplay();                               // clear the graphcis buffer  
+  u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
+  u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
+  u8g2_for_adafruit_gfx.setForegroundColor(ILI9341_CYAN);      // apply Adafruit GFX color
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_10x20_t_cyrillic);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  u8g2_for_adafruit_gfx.setCursor(0,20);                // start writing at this position
+  u8g2_for_adafruit_gfx.print(F("Hello Русский Текст"));
 
+  //test touch
+  u8g2_for_adafruit_gfx.println();
+  if(myTouch.dataAvailable() == true)
+  {
+    myTouch.read();
+    u8g2_for_adafruit_gfx.print("Touch X:"); u8g2_for_adafruit_gfx.print(myTouch.getX());u8g2_for_adafruit_gfx.println(F(""));
+    u8g2_for_adafruit_gfx.print("Touch Y:"); u8g2_for_adafruit_gfx.print(myTouch.getY());u8g2_for_adafruit_gfx.println(F(""));
+  }
+  else
+  {
+     u8g2_for_adafruit_gfx.println(F("NO touch"));
+  }
+  
+
+/*tft.setTextColor(ILI9341_CYAN); 
+tft.setTextSize(1);
+tft.println(F(""));
+tft.println(F(""));
 tft.setFont(&FreeMonoBoldOblique12pt7b);
-//tft.drawString("Русский Язык", 0, 140, 4);
+tft.print("Test RUS: Русский Язык");tft.println(F(""));
 
   //test touch
   if(myTouch.dataAvailable() == true)
   {
     myTouch.read();
-    tft.print("X:"); tft.print(myTouch.getX());
-    tft.print("Y:"); tft.print(myTouch.getY());
+    tft.print("X:"); tft.print(myTouch.getX());tft.println(F(""));
+    tft.print("Y:"); tft.print(myTouch.getY());tft.println(F(""));
   }
   else
   {
-    tft.print("NO touch");
-  }
+    tft.print("NO touch");tft.println(F(""));
+  }*/
 
-	delay(1000L);
+	delay(200L);
 }
 
 void printnice(int32_t v)
