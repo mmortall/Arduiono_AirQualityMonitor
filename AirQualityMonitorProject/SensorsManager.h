@@ -5,13 +5,16 @@
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <AM2320.h>
+
+#ifdef USE_PRESURE_SENSOR
 #include <Adafruit_MPL3115A2.h> //presure sensor
+Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
+#endif
 
 #undef  MPL3115A2_ADDRESS
 #define MPL3115A2_ADDRESS                       (0x61)
 
 AM2320 th;
-Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
 SoftwareSerial mySerial(A0, A1); // A0 - к TX сенсора, A1 - к RX
 
@@ -20,11 +23,14 @@ SoftwareSerial mySerial(A0, A1); // A0 - к TX сенсора, A1 - к RX
 byte cmd[9] = {0xFF,0x01,0x86,0x00,0x00,0x00,0x00,0x00,0x79}; 
 unsigned char response[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+#define MaxStorageHistory 10000
+
 class SensorsManager
 {
 public:
   SensorsManager():m_CO2ppm(-1), m_Presure(-1), m_Temperature(-1000), m_Humidity(-1), m_GAS(-1), m_Dust(-1), m_T1(0)
   {
+    m_CO2ppmArr = new short[MaxStorageHistory];
   }
 
 	void Init() 
@@ -85,7 +91,8 @@ public:
         m_Humidity = th.h;
         break;
     }
-  
+
+#ifdef USE_PRESURE_SENSOR  
     //presure sensor
     if (! baro.begin()) {
 #ifdef DEBUG_PRESURE_SENSOR
@@ -113,6 +120,9 @@ public:
       tempC = (tempC + m_T1) / 2.0f;
       m_Temperature = tempC;
     }
+#else
+  m_Temperature = m_T1;    
+#endif    
 	};
 
 	short GetCO2() { return m_CO2ppm; }
@@ -125,6 +135,8 @@ private:
   float m_Altitude; //in meters
 	short m_GAS;
 	short m_Dust;
+
+  short* m_CO2ppmArr;
 
   float m_T1; 
 };
