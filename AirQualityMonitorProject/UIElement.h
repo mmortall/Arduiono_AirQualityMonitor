@@ -7,26 +7,38 @@
 class UIElement: public TouchArea
 {
 public:
-	UIElement(const char* label, short x, short y, short w, short h, bool drawBG = false, bool drawRect = false): TouchArea(x,y,w,h)
+	UIElement(const char* label, short x, short y, short w, short h, short color = clrWHITE, bool drawBG = false, bool drawRect = false): TouchArea(x,y,w,h), m_IsDirty(true)
 	{
     setLabel(label);
     m_LabelPrev = label;
     m_DrawText = true;
     m_DrawBG = drawBG;
-    m_DrawRect = drawRect;    
+    m_DrawRect = drawRect; 
+    TextColor = color;   
 	}
 
-  UIElement(short x, short y, short w, short h, bool drawBG = false, bool drawRect = false): TouchArea(x,y,w,h)
+  UIElement(short x, short y, short w, short h, short color = clrWHITE, bool drawBG = false, bool drawRect = false): TouchArea(x,y,w,h), m_IsDirty(true)
   {
     setLabel(NULL);
-    m_LabelPrev = NULL;
     m_DrawText = false;
     m_DrawBG = drawBG;
-    m_DrawRect = drawRect;    
+    m_DrawRect = drawRect;   
+    TextColor = color;
   }
 
-	void render(IDisplay tft)
+	void render(IDisplay& tft)
 	{
+    if(&tft == NULL)
+    {
+     Serial.println("UIElement: tft == null");   
+     return;
+    }
+
+    if(m_IsDirty)
+       m_IsDirty = false;
+    else
+      return;
+    
 		if (m_DrawBG)
 		{
 		}
@@ -35,28 +47,33 @@ public:
 		{
 
 		}
-
 		if (m_DrawText)
 		{
 			//clean
 			tft.setCursor(x, y);
 			tft.setTextColor(clrBLACK);
-			tft.print(m_LabelPrev);
+      if(m_LabelPrev != NULL)
+			  tft.print(m_LabelPrev);
 
 			tft.setTextColor(TextColor);
-			tft.print(m_Label);
+      if(m_Label != NULL)
+			  tft.print(m_Label);
 		}
 	}
 
- bool itPressed(IDisplay tft)
+  bool isPressed(IDisplay& tft)
  {
     return tft.isTouch() && IsPointInArea(tft.getTouchX(), tft.getTouchY());
  }
 
 	void setLabel(const char* label)
 	{
-		m_LabelPrev = m_Label;
+    //if(strcmp(label, m_Label) == 0)
+    //  return;
+
+    m_LabelPrev = m_Label;
 		m_Label = label;
+    m_IsDirty = true;
 	}
 
 private:
@@ -69,6 +86,8 @@ private:
 	bool m_DrawText;
 	bool m_DrawBG;
 	bool m_DrawRect;
+
+  bool m_IsDirty;
 };
 
 #endif

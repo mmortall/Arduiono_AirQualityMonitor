@@ -134,16 +134,16 @@ public:
     }
 	};
 
-	int GetCO2();
+	short GetCO2();
 
 private:
-	int m_CO2ppm;
+	short m_CO2ppm;
 	float m_Presure;
 	float m_Temperature;
-  int m_Humidity;
+  short m_Humidity;
   float m_Altitude; //in meters
-	int m_GAS;
-	int m_Dust;
+	short m_GAS;
+	short m_Dust;
 
   float m_T1; 
 };

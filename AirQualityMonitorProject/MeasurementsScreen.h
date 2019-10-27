@@ -6,25 +6,26 @@
 class MeasurementsScreen
 {
 public:
-	void init(IDisplay render) 
+  UIElement* CO2Btn;
+
+  MeasurementsScreen()
+  {
+    CO2Btn = new UIElement("Концентрация CO2: ", 0, 15, 80, 40);
+  }
+
+	void init() 
 	{
-    _Render = render;
-		_CO2Btn = UIElement("Концентрация CO2: ", 10, 10, 80, 40);
 	};
 
-	void update() 
+	void update(IDisplay& render) 
 	{
-    _CO2Btn.render(_Render);
+    CO2Btn->render(render);
 	};
 
 	short getTouchCountrol(short x, short y)
 	{
 		return 0;
 	}
-
-private:
-  IDisplay _Render;
-	UIElement _CO2Btn;
 };
 
 #endif

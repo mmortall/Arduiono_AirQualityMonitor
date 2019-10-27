@@ -154,6 +154,7 @@ tft.println(F(""));
   u8g2_for_adafruit_gfx.setFont(u8g2_font_10x20_t_cyrillic);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
   u8g2_for_adafruit_gfx.setCursor(0,20);                // start writing at this position
   u8g2_for_adafruit_gfx.print(F("Hello Русский Текст"));
+  return;
 
   //test touch
   u8g2_for_adafruit_gfx.println();

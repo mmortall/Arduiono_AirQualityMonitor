@@ -4,14 +4,14 @@
 class IDisplay
 {
 public:  
-  void init();
-	void setCursor(short x, short y);
-	void setTextColor(short x);
-	void print(String txt);
+  virtual void init();
+	virtual void setCursor(short x, short y) = 0;
+	virtual void setTextColor(short x) = 0;
+	virtual void print(const char* txt) = 0;
 
-	bool isTouch();
-	short getTouchX();
-	short getTouchY();
+	virtual bool isTouch() = 0;
+	virtual short getTouchX() = 0;
+	virtual short getTouchY() = 0;
 };
 
 

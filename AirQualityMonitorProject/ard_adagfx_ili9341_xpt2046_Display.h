@@ -27,6 +27,8 @@ URTouch  myTouch = URTouch(ttclk, ttcs, ttdin, ttdout, ttirq); //URTouch(byte tc
 
 
 #define clrBLACK ILI9341_BLACK
+#define clrRED ILI9341_RED
+#define clrGREEN ILI9341_GREEN
 #define clrWHITE ILI9341_WHITE
 
 class ard_adagfx_ili9341_xpt2046_Display : public IDisplay
@@ -35,14 +37,19 @@ class ard_adagfx_ili9341_xpt2046_Display : public IDisplay
   short m_TouchX;
   short m_TouchY;
 
+  short _X;
+  short _Y;
+  short _Color;
+
 public:
-	void init()
+	virtual void init()
 	{
 		delay(200);
 
 		tft.begin();
+    tft.setRotation(1);
+        
 		u8g2_for_adafruit_gfx.begin(tft);
-		tft.setRotation(1);
 
 		myTouch.InitTouch();
 		myTouch.setPrecision(PREC_MEDIUM);
@@ -50,9 +57,12 @@ public:
 		u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
 		u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
 		u8g2_for_adafruit_gfx.setFont(u8g2_font_10x20_t_cyrillic);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setCursor(0, 0);
 	}
 
-	void update()
+	virtual void update()
 	{
 		if (myTouch.dataAvailable() == true)
 		{
@@ -68,32 +78,42 @@ public:
 		}
 	}
 
-	void setCursor(short x, short y)
+	virtual void setCursor(short x, short y) override 
 	{
-		tft.setCursor(x, y);
+		//u8g2_for_adafruit_gfx.setCursor(x, y);
+    _X = x;
+    _Y = y;
 	}
 
-	void setTextColor(short color)
+	virtual void setTextColor(short color) override 
 	{
-    u8g2_for_adafruit_gfx.setForegroundColor(color);      // apply Adafruit GFX color
+    _Color = color;
+    //u8g2_for_adafruit_gfx.setForegroundColor(color);      // apply Adafruit GFX color
 	}
 
-	void print(const char* txt)
+	virtual void print(const char* txt) override 
 	{
-		u8g2_for_adafruit_gfx.print(txt);
+		//u8g2_for_adafruit_gfx.print(txt);
+
+    u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
+    u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_10x20_t_cyrillic);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+    u8g2_for_adafruit_gfx.setForegroundColor(_Color);
+    u8g2_for_adafruit_gfx.setCursor(_X, _Y);                // start writing at this position
+    u8g2_for_adafruit_gfx.print(txt);
 	}
 
-	bool isTouch()
+	virtual bool isTouch() override 
 	{
 		return m_IsTouch;
 	}
 
-	short getTouchX()
+	virtual short getTouchX() override 
 	{
 		return m_TouchX;
 	}
 
-	short getTouchY()
+	virtual short getTouchY() override 
 	{
 		return m_TouchY;
 	}
