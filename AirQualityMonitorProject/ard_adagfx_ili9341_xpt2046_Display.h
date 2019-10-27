@@ -54,12 +54,7 @@ public:
 		myTouch.InitTouch();
 		myTouch.setPrecision(PREC_MEDIUM);
 
-		u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
-		u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
-		u8g2_for_adafruit_gfx.setFont(u8g2_font_10x20_t_cyrillic);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-
     tft.fillScreen(ILI9341_BLACK);
-    tft.setCursor(0, 0);
 	}
 
 	virtual void update()

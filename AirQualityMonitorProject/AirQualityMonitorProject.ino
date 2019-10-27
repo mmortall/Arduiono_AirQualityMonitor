@@ -44,12 +44,9 @@ void loop()
   _Sensors.Update();
 #endif
 
-  /*char buff[100];
-  memset(buff, 0, 100);
-  strcat(buff, "Test: ");
-  strcat(buff, String(counter).c_str());
-  Serial.println(buff);
-  _MeasurementsScreen.CO2Btn->setLabel(buff);*/
+  char cstr[16];
+  itoa(_Sensors.GetCO2(), cstr, 10);
+  _MeasurementsScreen.CO2Val->setLabel(cstr);
 
   _Display.update();
   _MeasurementsScreen.update(_Display);

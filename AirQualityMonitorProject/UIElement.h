@@ -14,12 +14,11 @@ public:
     m_DrawText = true;
     m_DrawBG = drawBG;
     m_DrawRect = drawRect; 
-    TextColor = color;   
+    TextColor = color;
 	}
 
   UIElement(short x, short y, short w, short h, short color = clrWHITE, bool drawBG = false, bool drawRect = false): TouchArea(x,y,w,h), m_IsDirty(true)
   {
-    setLabel(NULL);
     m_DrawText = false;
     m_DrawBG = drawBG;
     m_DrawRect = drawRect;   
@@ -28,12 +27,6 @@ public:
 
 	void render(IDisplay& tft)
 	{
-    if(&tft == NULL)
-    {
-     Serial.println("UIElement: tft == null");   
-     return;
-    }
-
     if(m_IsDirty)
        m_IsDirty = false;
     else
@@ -53,11 +46,11 @@ public:
 			tft.setCursor(x, y);
 			tft.setTextColor(clrBLACK);
       if(m_LabelPrev != NULL)
-			  tft.print(m_LabelPrev);
+			  tft.print(m_LabelPrev.c_str());
 
 			tft.setTextColor(TextColor);
       if(m_Label != NULL)
-			  tft.print(m_Label);
+			  tft.print(m_Label.c_str());
 		}
 	}
 
@@ -68,17 +61,17 @@ public:
 
 	void setLabel(const char* label)
 	{
-    //if(strcmp(label, m_Label) == 0)
-    //  return;
-
+    if(strcmp(label, m_Label.c_str()) == 0)
+      return;
+    
     m_LabelPrev = m_Label;
-		m_Label = label;
+    m_Label = label;
     m_IsDirty = true;
 	}
 
 private:
-	const char* m_Label;
-	const char* m_LabelPrev;
+	String m_Label;
+	String m_LabelPrev;
 	int TextColor;
 	int BGColor;
 	int RectColor;

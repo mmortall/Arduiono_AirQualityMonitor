@@ -44,97 +44,78 @@ public:
     for (i = 1; i < 8; i++) crc+=response[i];
     crc = 255 - crc;
     crc++;
-  
-    //display.setTextColor(WHITE);
-    //display.setCursor(15,5);
-    //DisplayPrint("CO2: "); DisplayPrintln("n/a");
-  
+
     //gas sensor
     float gasSensorValue = max(0, (((float)analogRead(gasPinAnalog)) - 100.0f) / (800.0f - 100.0f) * 100.0f);
     m_GAS = gasSensorValue;
     
     if ( !(response[0] == 0xFF && response[1] == 0x86 && response[8] == crc) ) {
+#ifdef DEBUG      
       Serial.println("CRC error: " + String(crc) + " / "+ String(response[8]));
-  
-      //DisplayPrint("CO2: "); DisplayPrint("n/a ("+ String(crc) +")");
+#endif      
+
       m_CO2ppm = -1;
     } else {
       unsigned int responseHigh = (unsigned int) response[2];
       unsigned int responseLow = (unsigned int) response[3];
       unsigned int ppm = (256*responseHigh) + responseLow;
-  
-      double res = 0;
-  
-      res = (double)ppm - (double)1000;
-      //updateBrightness(ledPin, res / 300.0, ppm);
-  
-      res = (double)ppm - (double)2000;
-      //updateBrightness(ledPinAlarm, res / 500.0, ppm);
-  
-      res = (double)ppm - (double)3000;
-      //updateBrightness(ledPinPesdecPolniy, res / 500.0, ppm);
-  
-      //Serial.print(ppm);
-  
-      //display.setTextColor(WHITE);
-      //DisplaySetCursor(15,5);
-      //DisplayPrint("CO2: "); DisplayPrint((int)ppm); DisplayPrint(" ppm");
+
       m_CO2ppm = ppm;
     }
   
     int ths = th.Read();
     switch(ths) {
       case 2:
+#ifdef DEBUG         
         Serial.println("CRC failed");
         break;
       case 1:
         Serial.println("Sensor offline");
         break;
+#endif         
       case 0:
+#ifdef DEBUG        
         Serial.print("humidity: ");
         Serial.print(th.h);
         Serial.print("%, temperature: ");
         Serial.print(th.t);
         Serial.println("*C");
-  
+#endif     
         m_T1 = th.t;
         m_Humidity = th.h;
-  
-        //DisplaySetCursor(15,25);
-        //DisplayPrint("Hm: "); DisplayPrint(th.h);DisplayPrint(" %");
         break;
     }
   
     //presure sensor
     if (! baro.begin()) {
+#ifdef DEBUG_PRESURE_SENSOR
       Serial.println("Couldnt find presure sensor");
+#endif
     }
     else
     {   
       float pascals = baro.getPressure();
+#ifdef DEBUG_PRESURE_SENSOR      
       Serial.print((int)pascals*0.00750062); Serial.println(" mmrs");
-      //DisplaySetCursor(15,35);
-      //DisplayPrint("P: "); DisplayPrint((float)(pascals*0.00750062)); DisplayPrint(" mmrs");
+#endif      
       m_Presure = (float)(pascals*0.00750062);
     
       float altm = baro.getAltitude();
       m_Altitude = altm;
+#ifdef DEBUG_PRESURE_SENSOR      
       Serial.print(altm); Serial.println(" meters");
-      //DisplaySetCursor(15,45);
-      //DisplayPrint("Hsea: "); DisplayPrint(altm); DisplayPrint(" m");
-  
+#endif         
+
       float tempC = baro.getTemperature();
       if(m_T1 == 0)
         m_T1 = tempC;
         
       tempC = (tempC + m_T1) / 2.0f;
       m_Temperature = tempC;
-      //DisplaySetCursor(15,15);
-      //DisplayPrint("T: "); DisplayPrint(tempC); DisplayPrint(" "); DisplayPrint((char)247); DisplayPrint("C"); //temparature
     }
 	};
 
-	short GetCO2();
+	short GetCO2() { return m_CO2ppm; }
 
 private:
 	short m_CO2ppm;
