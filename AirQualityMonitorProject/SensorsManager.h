@@ -2,7 +2,10 @@
 #define SENSORS_MANAGER_H
 
 #include <Arduino.h>
+#if DEBUG
 #include <SoftwareSerial.h>
+#endif
+
 #include <Wire.h>
 #include <AM2320.h>
 
@@ -25,6 +28,35 @@ unsigned char response[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 #define MaxStorageHistory 10000
 
+//dust sensor
+/////////////////// for DSM501 sensor /////////////////////////////////////////
+
+int pinV1 = 2+54;
+int pinV2 = 3+54;
+unsigned long durationV1;
+unsigned long durationV2;
+unsigned long starttimeV1;
+unsigned long starttimeV2;
+unsigned long lowpulseoccupancyV1 = 0;
+unsigned long lowpulseoccupancyV2 = 0;
+float one_to_two_point_five;
+float ratioV1 = 0;
+float ratioV2 = 0;
+boolean flagV1 = true;
+boolean flagV2 = true;
+boolean V1 = false;
+boolean V2 = false;
+float concentrationV1 = 0;
+float concentrationV2 = 0;
+int allV1, allV2, goodV1, goodV2;
+
+unsigned long starttime;
+unsigned long endtime;
+unsigned long sampletime_ms = 30000;
+unsigned long now;
+unsigned long loops;
+////////////////////////////////////////////////////////////////////////////////////
+
 class SensorsManager
 {
 public:
@@ -36,10 +68,17 @@ public:
 	void Init() 
 	{
     mySerial.begin(9600);
+
+    pinMode(pinV1,INPUT);
+    pinMode(pinV2,INPUT);
+    starttime = millis(); 
 	};
   
 	void Update() 
 	{
+    loops +=1;
+    now = millis();
+  
     //read data from CO2 sensor
     mySerial.write(cmd, 9);
     memset(response, 0, 9);
@@ -68,11 +107,83 @@ public:
 
       m_CO2ppm = ppm;
     }
+
+    ////////////  DSM 501 ////////////////////////
+
+    V1 = digitalRead(pinV1);
+    if ((flagV1)&&!(V1)) {         // start period of low V1
+        starttimeV1 = millis();
+        flagV1 = false;
+    };
+    if (!(flagV1)&&(V1)) {         // stop period of low V1
+        durationV1 = millis() - starttimeV1;
+        flagV1 = true;
+        allV1+=1;
+   
+      if ((durationV1 <= 90)&&(durationV1 >= 10)) {
+        lowpulseoccupancyV1 += durationV1;
+        goodV1+=1;
+      };
+    };
   
+    V2 = digitalRead(pinV2);
+    if ((flagV2)&&!(V2)) {         // start period of low V2
+        starttimeV2 = millis();
+        flagV2 = false;
+    };
+    if (!(flagV2)&&(V2)) {         // stop period of low V2
+        durationV2 = millis() - starttimeV2;
+        flagV2 = true;
+        allV2+=1;
+   
+    if ((durationV2 <= 90)&&(durationV2 >= 10)) {
+      lowpulseoccupancyV2 += durationV2;
+      goodV2+=1;
+    };
+   }; 
+
+  endtime = millis();
+  if ((endtime-starttime) > sampletime_ms)
+  {
+
+       ratioV1 = (lowpulseoccupancyV1*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+      ratioV2 = (lowpulseoccupancyV2*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+    //    concentrationV1 = 1.1*pow(ratioV1,3)-3.8*pow(ratioV1,2)+520*ratioV1+0.62; // using spec sheet curve in pcs in 1/100 ft3
+    //    concentrationV2 = 1.1*pow(ratioV2,3)-3.8*pow(ratioV2,2)+520*ratioV2+0.62; // using spec sheet curve in pcs in 1/100 ft3
+    
+      concentrationV1 = -0.0885*pow(ratioV1,4) - 2.55055*pow(ratioV1,3)- 21.920538*pow(ratioV1,2) + 172.171285*ratioV1 - 90.112;
+      concentrationV2 = -0.0885*pow(ratioV2,4) - 2.55055*pow(ratioV2,3)- 21.920538*pow(ratioV2,2) + 172.171285*ratioV2 - 90.112;
+    
+      if (concentrationV1 < 0) {concentrationV1 = 0.0;};
+      if (concentrationV2 < 0) {concentrationV2 = 0.0;};
+      one_to_two_point_five = concentrationV2 - concentrationV1;
+      if (one_to_two_point_five < 0) {one_to_two_point_five = 0;};
+    
+      Serial.print("  DSM501_>2.5: ");
+      Serial.print(concentrationV1);
+    
+      Serial.print("  DSM501_>1.0: ");
+      Serial.print(concentrationV2);
+        
+      Serial.print("  DSM501_1-2.5: ");
+      Serial.print(one_to_two_point_five);
+      m_Dust = one_to_two_point_five;
+     
+      lowpulseoccupancyV1 = 0;
+      lowpulseoccupancyV2 = 0;
+      loops = 0;
+      allV1 = 0;
+      goodV1 = 0;
+      allV2 = 0;
+      goodV2 = 0;
+      starttime = millis(); 
+  }             // if 30 sec passed
+
+  //presure sensor + temperature
     int ths = th.Read();
     switch(ths) {
-      case 2:
-#ifdef DEBUG         
+ #ifdef DEBUG        
+      case 2:      
         Serial.println("CRC failed");
         break;
       case 1:
@@ -89,6 +200,7 @@ public:
 #endif     
         m_T1 = th.t;
         m_Humidity = th.h;
+        m_Temperature = m_T1;   
         break;
     }
 
@@ -126,13 +238,19 @@ public:
 	};
 
 	short GetCO2() { return m_CO2ppm; }
-
+  float GetPresure() { return m_Presure; }
+  float GetTemp() { return m_Temperature; }
+  short GetHumidity() { return m_Humidity; }
+  short GetAltitude() { return m_Altitude; }
+  short GetGAS() { return m_GAS; }
+  short GetDust() { return m_Dust; }
+  
 private:
 	short m_CO2ppm;
 	float m_Presure;
 	float m_Temperature;
   short m_Humidity;
-  float m_Altitude; //in meters
+  short m_Altitude; //in meters
 	short m_GAS;
 	short m_Dust;
 

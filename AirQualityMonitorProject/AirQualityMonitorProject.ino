@@ -4,13 +4,14 @@
 // EEROM for storing values 
 
 #define USE_SENSORS
+#define USE_PRESURE_SENSOR
 
 #include <SoftwareSerial.h>
 #include "ard_adagfx_ili9341_xpt2046_Display.h"
 
 #ifdef USE_SENSORS
 #include "SensorsManager.h"
-SensorsManager _Sensors = SensorsManager();
+SensorsManager _Sensors;
 #endif  
 
 ard_adagfx_ili9341_xpt2046_Display _Display = ard_adagfx_ili9341_xpt2046_Display();
@@ -44,9 +45,23 @@ void loop()
   _Sensors.Update();
 #endif
 
-  char cstr[16];
-  itoa(_Sensors.GetCO2(), cstr, 10);
-  _MeasurementsScreen.CO2Val->setLabel(cstr);
+  char buff[16];
+  itoa(_Sensors.GetCO2(), buff, 10);
+  strcat(buff, " ppm");
+  _MeasurementsScreen.CO2Val->setLabel(buff);
+
+  dtostrf(_Sensors.GetTemp(), 4, 1, buff);
+  strcat(buff, " C");
+  _MeasurementsScreen.TemperVal->setLabel(buff);
+
+  dtostrf(_Sensors.GetPresure(), 4, 1, buff);
+  strcat(buff, " мрс");
+  _MeasurementsScreen.PresVal->setLabel(buff);
+
+  itoa(_Sensors.GetDust(), buff, 10);
+  strcat(buff, " ppm");
+  _MeasurementsScreen.DustVal->setLabel(buff);
+
 
   _Display.update();
   _MeasurementsScreen.update(_Display);
