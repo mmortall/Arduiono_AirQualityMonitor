@@ -59,6 +59,11 @@ public:
     return tft.isTouch() && IsPointInArea(tft.getTouchX(), tft.getTouchY());
  }
 
+  void setTextColor(int color)
+  {
+    TextColor = color;
+  }
+
 	void setLabel(const char* label)
 	{
     if(strcmp(label, m_Label.c_str()) == 0)

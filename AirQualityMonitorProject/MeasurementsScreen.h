@@ -19,7 +19,7 @@ public:
   {
     short yPos = 15;
     short yOffset = 20;
-    short xValPos = 200;
+    short xValPos = 180;
     CO2Btn = new UIElement("Концентр. CO2: ", 0, yPos, 80, 40); 
     CO2Val = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrRED); 
     yPos += yOffset;

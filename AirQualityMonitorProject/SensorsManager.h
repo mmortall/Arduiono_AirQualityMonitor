@@ -31,8 +31,8 @@ unsigned char response[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 //dust sensor
 /////////////////// for DSM501 sensor /////////////////////////////////////////
 
-int pinV1 = 2+54;
-int pinV2 = 3+54;
+int pinV1 = A2;
+int pinV2 = A3;
 unsigned long durationV1;
 unsigned long durationV2;
 unsigned long starttimeV1;
@@ -50,6 +50,8 @@ float concentrationV1 = 0;
 float concentrationV2 = 0;
 int allV1, allV2, goodV1, goodV2;
 
+#define MinDustMeasurementTimeSec (1 * 60) //5 min
+
 unsigned long starttime;
 unsigned long endtime;
 unsigned long sampletime_ms = 30000;
@@ -60,7 +62,7 @@ unsigned long loops;
 class SensorsManager
 {
 public:
-  SensorsManager():m_CO2ppm(-1), m_Presure(-1), m_Temperature(-1000), m_Humidity(-1), m_GAS(-1), m_Dust(-1), m_T1(0)
+  SensorsManager():m_CO2ppm(-1), m_Presure(-1), m_Temperature(-1000), m_Humidity(-1), m_GAS(-1), m_Dust(-1), m_T1(0), m_DustCalcCounter(0), m_DustOverall(0)
   {
     m_CO2ppmArr = new short[MaxStorageHistory];
   }
@@ -76,9 +78,6 @@ public:
   
 	void Update() 
 	{
-    loops +=1;
-    now = millis();
-  
     //read data from CO2 sensor
     mySerial.write(cmd, 9);
     memset(response, 0, 9);
@@ -107,77 +106,6 @@ public:
 
       m_CO2ppm = ppm;
     }
-
-    ////////////  DSM 501 ////////////////////////
-
-    V1 = digitalRead(pinV1);
-    if ((flagV1)&&!(V1)) {         // start period of low V1
-        starttimeV1 = millis();
-        flagV1 = false;
-    };
-    if (!(flagV1)&&(V1)) {         // stop period of low V1
-        durationV1 = millis() - starttimeV1;
-        flagV1 = true;
-        allV1+=1;
-   
-      if ((durationV1 <= 90)&&(durationV1 >= 10)) {
-        lowpulseoccupancyV1 += durationV1;
-        goodV1+=1;
-      };
-    };
-  
-    V2 = digitalRead(pinV2);
-    if ((flagV2)&&!(V2)) {         // start period of low V2
-        starttimeV2 = millis();
-        flagV2 = false;
-    };
-    if (!(flagV2)&&(V2)) {         // stop period of low V2
-        durationV2 = millis() - starttimeV2;
-        flagV2 = true;
-        allV2+=1;
-   
-    if ((durationV2 <= 90)&&(durationV2 >= 10)) {
-      lowpulseoccupancyV2 += durationV2;
-      goodV2+=1;
-    };
-   }; 
-
-  endtime = millis();
-  if ((endtime-starttime) > sampletime_ms)
-  {
-
-       ratioV1 = (lowpulseoccupancyV1*100.0)/(endtime-starttime);  // Integer percentage 0=>100
-      ratioV2 = (lowpulseoccupancyV2*100.0)/(endtime-starttime);  // Integer percentage 0=>100
-    //    concentrationV1 = 1.1*pow(ratioV1,3)-3.8*pow(ratioV1,2)+520*ratioV1+0.62; // using spec sheet curve in pcs in 1/100 ft3
-    //    concentrationV2 = 1.1*pow(ratioV2,3)-3.8*pow(ratioV2,2)+520*ratioV2+0.62; // using spec sheet curve in pcs in 1/100 ft3
-    
-      concentrationV1 = -0.0885*pow(ratioV1,4) - 2.55055*pow(ratioV1,3)- 21.920538*pow(ratioV1,2) + 172.171285*ratioV1 - 90.112;
-      concentrationV2 = -0.0885*pow(ratioV2,4) - 2.55055*pow(ratioV2,3)- 21.920538*pow(ratioV2,2) + 172.171285*ratioV2 - 90.112;
-    
-      if (concentrationV1 < 0) {concentrationV1 = 0.0;};
-      if (concentrationV2 < 0) {concentrationV2 = 0.0;};
-      one_to_two_point_five = concentrationV2 - concentrationV1;
-      if (one_to_two_point_five < 0) {one_to_two_point_five = 0;};
-    
-      Serial.print("  DSM501_>2.5: ");
-      Serial.print(concentrationV1);
-    
-      Serial.print("  DSM501_>1.0: ");
-      Serial.print(concentrationV2);
-        
-      Serial.print("  DSM501_1-2.5: ");
-      Serial.print(one_to_two_point_five);
-      m_Dust = one_to_two_point_five;
-     
-      lowpulseoccupancyV1 = 0;
-      lowpulseoccupancyV2 = 0;
-      loops = 0;
-      allV1 = 0;
-      goodV1 = 0;
-      allV2 = 0;
-      goodV2 = 0;
-      starttime = millis(); 
-  }             // if 30 sec passed
 
   //presure sensor + temperature
     int ths = th.Read();
@@ -237,6 +165,103 @@ public:
 #endif    
 	};
 
+  short DustSensorUpdate()
+  {
+    loops +=1;
+    now = millis();
+  
+      ////////////  DSM 501 ////////////////////////
+  
+        V1 = digitalRead(pinV1);
+    if ((flagV1)&&!(V1)) {         // start period of low V1
+        starttimeV1 = millis();
+        flagV1 = false;
+    };
+    if (!(flagV1)&&(V1)) {         // stop period of low V1
+        durationV1 = millis() - starttimeV1;
+        flagV1 = true;
+        allV1+=1;
+   
+      if ((durationV1 <= 90)&&(durationV1 >= 10)) {
+        lowpulseoccupancyV1 += durationV1;
+        goodV1+=1;
+      };
+    };
+  
+    V2 = digitalRead(pinV2);
+    if ((flagV2)&&!(V2)) {         // start period of low V2
+        starttimeV2 = millis();
+        flagV2 = false;
+    };
+    if (!(flagV2)&&(V2)) {         // stop period of low V2
+        durationV2 = millis() - starttimeV2;
+        flagV2 = true;
+        allV2+=1;
+   
+    if ((durationV2 <= 90)&&(durationV2 >= 10)) {
+      lowpulseoccupancyV2 += durationV2;
+      goodV2+=1;
+    };
+   };
+  
+    endtime = millis();
+    if ((endtime-starttime) > sampletime_ms)
+    {
+    ratioV1 = (lowpulseoccupancyV1*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+    ratioV2 = (lowpulseoccupancyV2*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+        Serial.print("ratioV1:"); Serial.println(ratioV1);
+         Serial.print("ratioV2:"); Serial.println(ratioV2);
+          concentrationV1 = 1.1*pow(ratioV1,3)-3.8*pow(ratioV1,2)+520*ratioV1+0.62; // using spec sheet curve in pcs in 1/100 ft3
+          concentrationV2 = 1.1*pow(ratioV2,3)-3.8*pow(ratioV2,2)+520*ratioV2+0.62; // using spec sheet curve in pcs in 1/100 ft3
+      
+        //concentrationV1 = -0.0885*pow(ratioV1,4) - 2.55055*pow(ratioV1,3)- 21.920538*pow(ratioV1,2) + 172.171285*ratioV1 - 90.112;
+        //concentrationV2 = -0.0885*pow(ratioV2,4) - 2.55055*pow(ratioV2,3)- 21.920538*pow(ratioV2,2) + 172.171285*ratioV2 - 90.112;
+        Serial.print("concentrationV1:"); Serial.println(concentrationV1);
+         Serial.print("concentrationV2:"); Serial.println(concentrationV2);
+               
+        if (concentrationV1 < 0) {concentrationV1 = 0.0;};
+        if (concentrationV2 < 0) {concentrationV2 = 0.0;};
+        one_to_two_point_five = concentrationV1 - concentrationV2;
+        if (one_to_two_point_five < 0) {one_to_two_point_five = 0;};
+
+        float one_to_two_point_five_AQI = one_to_two_point_five * 3534 * 1.8e-5;
+      
+        Serial.print("  DSM501_>2.5: ");
+        Serial.print(concentrationV1);
+      
+        Serial.print("  DSM501_>1.0: ");
+        Serial.print(concentrationV2);
+          
+        Serial.print("  DSM501_1-2.5: ");
+        Serial.print(one_to_two_point_five);
+        Serial.println();
+        //m_DustOverall += (int) one_to_two_point_five_AQI;
+       
+        lowpulseoccupancyV1 = 0;
+        lowpulseoccupancyV2 = 0;
+        loops = 0;
+        allV1 = 0;
+        goodV1 = 0;
+        allV2 = 0;
+        goodV2 = 0;
+        m_DustCalcCounter++;
+        m_Dust = one_to_two_point_five_AQI;
+        /*if(((m_DustCalcCounter * sampletime_ms)/1000) > MinDustMeasurementTimeSec )
+        {
+           m_Dust = m_DustOverall / m_DustCalcCounter;
+           m_DustOverall = 0;
+           m_DustCalcCounter = 0;
+        }*/
+        
+        starttime = millis(); 
+        return true;
+    }   // if 30 sec passed
+
+    //m_DustSensorDataUpdateLeft = MinDustMeasurementTimeSec - (((m_DustCalcCounter * sampletime_ms)/1000) + msecDiff/1000);
+    return false;
+
+  }
+
 	short GetCO2() { return m_CO2ppm; }
   float GetPresure() { return m_Presure; }
   float GetTemp() { return m_Temperature; }
@@ -244,6 +269,7 @@ public:
   short GetAltitude() { return m_Altitude; }
   short GetGAS() { return m_GAS; }
   short GetDust() { return m_Dust; }
+  short GetDustSensorNextResultSec() { return m_DustSensorDataUpdateLeft; }
   
 private:
 	short m_CO2ppm;
@@ -253,6 +279,10 @@ private:
   short m_Altitude; //in meters
 	short m_GAS;
 	short m_Dust;
+
+  short m_DustOverall;
+  short m_DustCalcCounter;
+  short m_DustSensorDataUpdateLeft;
 
   short* m_CO2ppmArr;
 

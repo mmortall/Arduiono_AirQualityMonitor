@@ -296,6 +296,12 @@ URTouch  myTouch = URTouch(ttclk, ttcs, ttdin, ttdout, ttirq); //URTouch(byte tc
 #define clrRED ILI9341_RED
 #define clrGREEN ILI9341_GREEN
 #define clrWHITE ILI9341_WHITE
+#define clrGRAY ConvertRGB(99, 99, 99)
+
+word ConvertRGB( byte R, byte G, byte B)
+{
+  return ( ((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3) );
+}
 
 class ard_adagfx_ili9341_xpt2046_Display : public IDisplay
 {

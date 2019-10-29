@@ -39,10 +39,21 @@ void setup() {
 
 int counter = 0;
 
+bool dustSensorUpdate;
+
 void loop() 
 {
 #ifdef USE_SENSORS
-  _Sensors.Update();
+  if(dustSensorUpdate)
+  {
+    dustSensorUpdate = _Sensors.DustSensorUpdate();
+    return;
+  }
+  else
+  {
+      _Sensors.Update();
+      dustSensorUpdate = true;
+  }
 #endif
 
   char buff[16];
@@ -58,9 +69,25 @@ void loop()
   strcat(buff, " мрс");
   _MeasurementsScreen.PresVal->setLabel(buff);
 
+  short dustVal = _Sensors.GetDust();
   itoa(_Sensors.GetDust(), buff, 10);
-  strcat(buff, " ppm");
+  //strcat(buff, " ugm");
   _MeasurementsScreen.DustVal->setLabel(buff);
+  _MeasurementsScreen.DustVal->setTextColor(clrGREEN);
+  /*if(dustVal > 0)
+  {
+    itoa(_Sensors.GetDust(), buff, 10);
+    strcat(buff, " ug/m3");
+    _MeasurementsScreen.DustVal->setLabel(buff);
+    _MeasurementsScreen.DustVal->setTextColor(clrGREEN);
+  }
+  else
+  {
+    itoa(_Sensors.GetDustSensorNextResultSec(), buff, 10);
+    strcat(buff, " с.");
+    _MeasurementsScreen.DustVal->setLabel(buff);    
+    _MeasurementsScreen.DustVal->setTextColor(clrGRAY);
+  }*/
 
 
   _Display.update();
