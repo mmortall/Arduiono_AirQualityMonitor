@@ -50,11 +50,11 @@ float concentrationV1 = 0;
 float concentrationV2 = 0;
 int allV1, allV2, goodV1, goodV2;
 
-#define MinDustMeasurementTimeSec (1 * 60) //5 min
+//#define MinDustMeasurementTimeSec (1 * 60) //5 min
 
 unsigned long starttime;
 unsigned long endtime;
-unsigned long sampletime_ms = 30000;
+unsigned long sampletime_ms = 300000;
 unsigned long now;
 unsigned long loops;
 ////////////////////////////////////////////////////////////////////////////////////

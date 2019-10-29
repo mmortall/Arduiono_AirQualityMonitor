@@ -46,7 +46,7 @@ void loop()
 #ifdef USE_SENSORS
   if(dustSensorUpdate)
   {
-    dustSensorUpdate = _Sensors.DustSensorUpdate();
+    dustSensorUpdate = !_Sensors.DustSensorUpdate();
     return;
   }
   else
@@ -73,7 +73,7 @@ void loop()
   itoa(_Sensors.GetDust(), buff, 10);
   //strcat(buff, " ugm");
   _MeasurementsScreen.DustVal->setLabel(buff);
-  _MeasurementsScreen.DustVal->setTextColor(clrGREEN);
+  //_MeasurementsScreen.DustVal->setTextColor(clrGREEN);
   /*if(dustVal > 0)
   {
     itoa(_Sensors.GetDust(), buff, 10);
