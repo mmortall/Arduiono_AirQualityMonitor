@@ -46,11 +46,11 @@ public:
 			tft.setCursor(x, y);
 			tft.setTextColor(clrBLACK);
       if(m_LabelPrev != NULL)
-			  tft.print(m_LabelPrev.c_str());
+			  tft.print(m_LabelPrev);
 
 			tft.setTextColor(TextColor);
       if(m_Label != NULL)
-			  tft.print(m_Label.c_str());
+			  tft.print(m_Label);
 		}
 	}
 
@@ -64,7 +64,7 @@ public:
     TextColor = color;
   }
 
-	void setLabel(const char* label)
+	/*void setLabel(const char* label)
 	{
     if(strcmp(label, m_Label.c_str()) == 0)
       return;
@@ -72,7 +72,18 @@ public:
     m_LabelPrev = m_Label;
     m_Label = label;
     m_IsDirty = true;
-	}
+	}*/
+
+ 
+ void setLabel(String label)
+  {
+    if(label == m_Label)
+      return;
+    
+    m_LabelPrev = m_Label;
+    m_Label = String(label);
+    m_IsDirty = true;
+  }
 
 private:
 	String m_Label;

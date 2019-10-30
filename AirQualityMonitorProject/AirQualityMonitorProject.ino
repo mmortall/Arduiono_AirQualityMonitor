@@ -19,6 +19,7 @@ ard_adagfx_ili9341_xpt2046_Display _Display = ard_adagfx_ili9341_xpt2046_Display
 #include "MeasurementsScreen.h"
 MeasurementsScreen _MeasurementsScreen = MeasurementsScreen();
 
+
 enum EMenu
 {
   EMenu_Measurements = 0,
@@ -56,38 +57,45 @@ void loop()
   }
 #endif
 
+///_Sensors.Update();
+
   char buff[16];
-  itoa(_Sensors.GetCO2(), buff, 10);
-  strcat(buff, " ppm");
-  _MeasurementsScreen.CO2Val->setLabel(buff);
+  //memset(&buff[0], 0, sizeof(buff));
+  //itoa(_Sensors.GetCO2(), buff, 10);
+  //strcat(buff, " ppm");
+  //char buff1[16] = {0};
+  //sprintf(buff1, "%d ppm", _Sensors.GetCO2());
+  _MeasurementsScreen.CO2Val->setLabel(String(_Sensors.GetCO2()) + " ppm");
 
+  //memset(&buff[0], 0, sizeof(buff));
   dtostrf(_Sensors.GetTemp(), 4, 1, buff);
-  strcat(buff, " C");
-  _MeasurementsScreen.TemperVal->setLabel(buff);
+  //strcat(buff, " C");
+  //char buff2[16] = {0};
+  //sprintf(buff2, "%.2d ppm", _Sensors.GetTemp());
+  _MeasurementsScreen.TemperVal->setLabel(String(buff) + " C");
 
+  //memset(&buff[0], 0, sizeof(buff));
   dtostrf(_Sensors.GetPresure(), 4, 1, buff);
-  strcat(buff, " мрс");
-  _MeasurementsScreen.PresVal->setLabel(buff);
+  //strcat(buff, " мрс");
+  //char buff3[16] = {0};
+  //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
+  _MeasurementsScreen.PresVal->setLabel(String(buff) + " мрс");
 
+  memset(buff, 0, sizeof(buff));
   short dustVal = _Sensors.GetDust();
-  itoa(_Sensors.GetDust(), buff, 10);
-  //strcat(buff, " ugm");
-  _MeasurementsScreen.DustVal->setLabel(buff);
-  //_MeasurementsScreen.DustVal->setTextColor(clrGREEN);
-  /*if(dustVal > 0)
+  if(dustVal > 0)
   {
     itoa(_Sensors.GetDust(), buff, 10);
-    strcat(buff, " ug/m3");
+    strcat(buff, " ug");
+    strcat(buff, "/m3");
     _MeasurementsScreen.DustVal->setLabel(buff);
     _MeasurementsScreen.DustVal->setTextColor(clrGREEN);
   }
   else
   {
-    itoa(_Sensors.GetDustSensorNextResultSec(), buff, 10);
-    strcat(buff, " с.");
-    _MeasurementsScreen.DustVal->setLabel(buff);    
+    _MeasurementsScreen.DustVal->setLabel("измеряю");    
     _MeasurementsScreen.DustVal->setTextColor(clrGRAY);
-  }*/
+  }
 
 
   _Display.update();

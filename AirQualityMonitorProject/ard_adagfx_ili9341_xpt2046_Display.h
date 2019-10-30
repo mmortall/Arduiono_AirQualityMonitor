@@ -333,6 +333,7 @@ public:
 
 	virtual void update()
 	{
+    tft.setCursor(0, 0);
 		if (myTouch.dataAvailable() == true)
 		{
 			m_IsTouch = true;
@@ -358,7 +359,7 @@ public:
     _Color = color;
 	}
 
-	virtual void print(const char* txt) override 
+	virtual void print(String txt) override 
 	{
 
 #ifdef USE_U8g2
@@ -374,6 +375,7 @@ public:
    tft.setTextSize(2);
    tft.setTextColor(_Color);
    tft.setCursor(_X, _Y);
+   //Serial.print("Draw UI: "); Serial.print(txt); Serial.print(" in pos: "); Serial.print(_X); Serial.print(", ");Serial.print(_Y);Serial.println("");
    tft.print(utf8rus(txt));
 #endif    
 	}

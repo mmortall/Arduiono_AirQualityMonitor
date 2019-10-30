@@ -7,7 +7,7 @@ public:
   virtual void init();
 	virtual void setCursor(short x, short y) = 0;
 	virtual void setTextColor(short x) = 0;
-	virtual void print(const char* txt) = 0;
+	virtual void print(String txt) = 0;
 
 	virtual bool isTouch() = 0;
 	virtual short getTouchX() = 0;

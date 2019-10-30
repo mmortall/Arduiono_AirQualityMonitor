@@ -54,7 +54,7 @@ int allV1, allV2, goodV1, goodV2;
 
 unsigned long starttime;
 unsigned long endtime;
-unsigned long sampletime_ms = 300000;
+unsigned long sampletime_ms = 30000;
 unsigned long now;
 unsigned long loops;
 ////////////////////////////////////////////////////////////////////////////////////
@@ -165,11 +165,11 @@ public:
 #endif    
 	};
 
-  short DustSensorUpdate()
+  bool DustSensorUpdate()
   {
     loops +=1;
     now = millis();
-  
+    
       ////////////  DSM 501 ////////////////////////
   
         V1 = digitalRead(pinV1);
@@ -203,21 +203,30 @@ public:
       goodV2+=1;
     };
    };
+
+  /*endtime = millis();
+  if ((endtime-starttime) > sampletime_ms)
+  {
+      m_Dust = (short) random(1, 300);
+      starttime = millis();
+      return true;
+  }
+  return false;*/
   
     endtime = millis();
     if ((endtime-starttime) > sampletime_ms)
     {
-    ratioV1 = (lowpulseoccupancyV1*100.0)/(endtime-starttime);  // Integer percentage 0=>100
-    ratioV2 = (lowpulseoccupancyV2*100.0)/(endtime-starttime);  // Integer percentage 0=>100
-        Serial.print("ratioV1:"); Serial.println(ratioV1);
-         Serial.print("ratioV2:"); Serial.println(ratioV2);
+      ratioV1 = (lowpulseoccupancyV1*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+      ratioV2 = (lowpulseoccupancyV2*100.0)/(endtime-starttime);  // Integer percentage 0=>100
+        //Serial.print("ratioV1:"); Serial.println(ratioV1);
+         //Serial.print("ratioV2:"); Serial.println(ratioV2);
           concentrationV1 = 1.1*pow(ratioV1,3)-3.8*pow(ratioV1,2)+520*ratioV1+0.62; // using spec sheet curve in pcs in 1/100 ft3
           concentrationV2 = 1.1*pow(ratioV2,3)-3.8*pow(ratioV2,2)+520*ratioV2+0.62; // using spec sheet curve in pcs in 1/100 ft3
       
         //concentrationV1 = -0.0885*pow(ratioV1,4) - 2.55055*pow(ratioV1,3)- 21.920538*pow(ratioV1,2) + 172.171285*ratioV1 - 90.112;
         //concentrationV2 = -0.0885*pow(ratioV2,4) - 2.55055*pow(ratioV2,3)- 21.920538*pow(ratioV2,2) + 172.171285*ratioV2 - 90.112;
-        Serial.print("concentrationV1:"); Serial.println(concentrationV1);
-         Serial.print("concentrationV2:"); Serial.println(concentrationV2);
+        //Serial.print("concentrationV1:"); Serial.println(concentrationV1);
+        // Serial.print("concentrationV2:"); Serial.println(concentrationV2);
                
         if (concentrationV1 < 0) {concentrationV1 = 0.0;};
         if (concentrationV2 < 0) {concentrationV2 = 0.0;};
@@ -226,15 +235,15 @@ public:
 
         float one_to_two_point_five_AQI = one_to_two_point_five * 3534 * 1.8e-5;
       
-        Serial.print("  DSM501_>2.5: ");
-        Serial.print(concentrationV1);
+        //Serial.print("  DSM501_>2.5: ");
+        //Serial.print(concentrationV1);
       
-        Serial.print("  DSM501_>1.0: ");
-        Serial.print(concentrationV2);
+        //Serial.print("  DSM501_>1.0: ");
+        //Serial.print(concentrationV2);
           
-        Serial.print("  DSM501_1-2.5: ");
-        Serial.print(one_to_two_point_five);
-        Serial.println();
+        //Serial.print("  DSM501_1-2.5: ");
+        //Serial.print(one_to_two_point_five);
+        //Serial.println();
         //m_DustOverall += (int) one_to_two_point_five_AQI;
        
         lowpulseoccupancyV1 = 0;
@@ -245,7 +254,10 @@ public:
         allV2 = 0;
         goodV2 = 0;
         m_DustCalcCounter++;
-        m_Dust = one_to_two_point_five_AQI;
+
+        //Serial.print("one_to_two_point_five_AQI:"); Serial.println(one_to_two_point_five_AQI);
+        if(one_to_two_point_five_AQI > 0)
+          m_Dust = (short)floor(one_to_two_point_five_AQI);
         /*if(((m_DustCalcCounter * sampletime_ms)/1000) > MinDustMeasurementTimeSec )
         {
            m_Dust = m_DustOverall / m_DustCalcCounter;

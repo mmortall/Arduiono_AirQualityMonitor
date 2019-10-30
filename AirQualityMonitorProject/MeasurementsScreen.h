@@ -19,17 +19,18 @@ public:
   {
     short yPos = 15;
     short yOffset = 20;
-    short xValPos = 180;
-    CO2Btn = new UIElement("Концентр. CO2: ", 0, yPos, 80, 40); 
+    short xStartPos = 1;
+    short xValPos = 190;
+    CO2Btn = new UIElement("Концентр. CO2: ", xStartPos, yPos, 80, 40); 
     CO2Val = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrRED); 
     yPos += yOffset;
-    TemperBtn = new UIElement("Температура: ", 0, yPos, 80, 40); 
+    TemperBtn = new UIElement("Температура: ", xStartPos, yPos, 80, 40); 
     TemperVal = new UIElement("25.2", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
-    PresBtn = new UIElement("Атмос. давление: ", 0, yPos, 80, 40); 
+    PresBtn = new UIElement("Атмос. давление: ", xStartPos, yPos, 80, 40); 
     PresVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
-    DustBtn = new UIElement("Пыль (частицы): ", 0, yPos, 80, 40); 
+    DustBtn = new UIElement("Пыль (частицы): ", xStartPos, yPos, 80, 40); 
     DustVal = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
   }
