@@ -12,8 +12,12 @@ public:
   UIElement* TemperVal;
   UIElement* PresBtn;
   UIElement* PresVal;
+  UIElement* HumidityBtn;
+  UIElement* HumidityVal;
+#ifdef USE_DUST_SENSOR  
   UIElement* DustBtn;
   UIElement* DustVal;
+#endif
       
   MeasurementsScreen()
   {
@@ -30,9 +34,14 @@ public:
     PresBtn = new UIElement("Атмос. давление: ", xStartPos, yPos, 80, 40); 
     PresVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
+    HumidityBtn = new UIElement("Влажность: ", xStartPos, yPos, 80, 40); 
+    HumidityVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
+    yPos += yOffset;
+#ifdef USE_DUST_SENSOR    
     DustBtn = new UIElement("Пыль (частицы): ", xStartPos, yPos, 80, 40); 
     DustVal = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
+#endif    
   }
 
 	void init() 
@@ -47,8 +56,12 @@ public:
     TemperVal->render(render);
     PresBtn->render(render);
     PresVal->render(render);
+    HumidityBtn->render(render);
+    HumidityVal->render(render);
+#ifdef USE_DUST_SENSOR       
     DustBtn->render(render);
     DustVal->render(render);
+#endif     
 	};
 
 	short getTouchCountrol(short x, short y)

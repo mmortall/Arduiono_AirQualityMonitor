@@ -28,11 +28,12 @@ unsigned char response[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 #define MaxStorageHistory 10000
 
+#ifdef USE_DUST_SENSOR
 //dust sensor
 /////////////////// for DSM501 sensor /////////////////////////////////////////
 
-int pinV1 = A2;
-int pinV2 = A3;
+#define pinV1 (A2)
+#define pinV2 (A3)
 unsigned long durationV1;
 unsigned long durationV2;
 unsigned long starttimeV1;
@@ -54,9 +55,8 @@ int allV1, allV2, goodV1, goodV2;
 
 unsigned long starttime;
 unsigned long endtime;
-unsigned long sampletime_ms = 30000;
-unsigned long now;
-unsigned long loops;
+#define sampletime_ms (30000L)
+#endif
 ////////////////////////////////////////////////////////////////////////////////////
 
 class SensorsManager
@@ -71,9 +71,11 @@ public:
 	{
     mySerial.begin(9600);
 
+#ifdef USE_DUST_SENSOR
     pinMode(pinV1,INPUT);
     pinMode(pinV2,INPUT);
     starttime = millis(); 
+#endif
 	};
   
 	void Update() 
@@ -167,9 +169,7 @@ public:
 
   bool DustSensorUpdate()
   {
-    loops +=1;
-    now = millis();
-    
+#ifdef USE_DUST_SENSOR    
       ////////////  DSM 501 ////////////////////////
   
         V1 = digitalRead(pinV1);
@@ -204,15 +204,6 @@ public:
     };
    };
 
-  /*endtime = millis();
-  if ((endtime-starttime) > sampletime_ms)
-  {
-      m_Dust = (short) random(1, 300);
-      starttime = millis();
-      return true;
-  }
-  return false;*/
-  
     endtime = millis();
     if ((endtime-starttime) > sampletime_ms)
     {
@@ -230,10 +221,10 @@ public:
                
         if (concentrationV1 < 0) {concentrationV1 = 0.0;};
         if (concentrationV2 < 0) {concentrationV2 = 0.0;};
-        one_to_two_point_five = concentrationV1 - concentrationV2;
+        one_to_two_point_five = concentrationV2 - concentrationV1;
         if (one_to_two_point_five < 0) {one_to_two_point_five = 0;};
 
-        float one_to_two_point_five_AQI = one_to_two_point_five * 3534 * 1.8e-5;
+        float one_to_two_point_five_AQI = one_to_two_point_five * 3534.0 * 1.8e-5;
       
         //Serial.print("  DSM501_>2.5: ");
         //Serial.print(concentrationV1);
@@ -255,35 +246,33 @@ public:
         goodV2 = 0;
         m_DustCalcCounter++;
 
-        //Serial.print("one_to_two_point_five_AQI:"); Serial.println(one_to_two_point_five_AQI);
         if(one_to_two_point_five_AQI > 0)
           m_Dust = (short)floor(one_to_two_point_five_AQI);
-        /*if(((m_DustCalcCounter * sampletime_ms)/1000) > MinDustMeasurementTimeSec )
-        {
-           m_Dust = m_DustOverall / m_DustCalcCounter;
-           m_DustOverall = 0;
-           m_DustCalcCounter = 0;
-        }*/
-        
+
+        //Serial.print("one_to_two_point_five_AQI:"); Serial.println(one_to_two_point_five_AQI);  
         starttime = millis(); 
         return true;
-    }   // if 30 sec passed
+    }   // if 30 sec passed*/
 
     //m_DustSensorDataUpdateLeft = MinDustMeasurementTimeSec - (((m_DustCalcCounter * sampletime_ms)/1000) + msecDiff/1000);
     return false;
+
+    #else
+    return true;
+    #endif
 
   }
 
 	short GetCO2() { return m_CO2ppm; }
   float GetPresure() { return m_Presure; }
   float GetTemp() { return m_Temperature; }
-  short GetHumidity() { return m_Humidity; }
   short GetAltitude() { return m_Altitude; }
+  short GetHumidity() { return m_Humidity; }
   short GetGAS() { return m_GAS; }
   short GetDust() { return m_Dust; }
   short GetDustSensorNextResultSec() { return m_DustSensorDataUpdateLeft; }
   
-private:
+private:  
 	short m_CO2ppm;
 	float m_Presure;
 	float m_Temperature;

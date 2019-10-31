@@ -9,6 +9,8 @@
 #include <SoftwareSerial.h>
 #include "ard_adagfx_ili9341_xpt2046_Display.h"
 
+#include "EEROMUtls.h"
+
 #ifdef USE_SENSORS
 #include "SensorsManager.h"
 SensorsManager _Sensors;
@@ -29,6 +31,8 @@ enum EMenu
 
 void setup() {
   Serial.begin(9600);
+  eep_setup();
+  
 
 #ifdef USE_SENSORS
   _Sensors.Init();
@@ -45,6 +49,7 @@ bool dustSensorUpdate;
 void loop() 
 {
 #ifdef USE_SENSORS
+#ifdef USE_DUST_SENSOR
   if(dustSensorUpdate)
   {
     dustSensorUpdate = !_Sensors.DustSensorUpdate();
@@ -55,32 +60,39 @@ void loop()
       _Sensors.Update();
       dustSensorUpdate = true;
   }
+#else
+    _Sensors.Update();
 #endif
-
-///_Sensors.Update();
+#endif
 
   char buff[16];
   //memset(&buff[0], 0, sizeof(buff));
-  //itoa(_Sensors.GetCO2(), buff, 10);
-  //strcat(buff, " ppm");
+  itoa(_Sensors.GetCO2(), buff, 10);
+  strcat(buff, " ppm");
   //char buff1[16] = {0};
   //sprintf(buff1, "%d ppm", _Sensors.GetCO2());
-  _MeasurementsScreen.CO2Val->setLabel(String(_Sensors.GetCO2()) + " ppm");
+  _MeasurementsScreen.CO2Val->setLabel(buff);
 
   //memset(&buff[0], 0, sizeof(buff));
   dtostrf(_Sensors.GetTemp(), 4, 1, buff);
-  //strcat(buff, " C");
+  strcat(buff, " C");
   //char buff2[16] = {0};
   //sprintf(buff2, "%.2d ppm", _Sensors.GetTemp());
-  _MeasurementsScreen.TemperVal->setLabel(String(buff) + " C");
+  _MeasurementsScreen.TemperVal->setLabel(buff);
 
-  //memset(&buff[0], 0, sizeof(buff));
   dtostrf(_Sensors.GetPresure(), 4, 1, buff);
-  //strcat(buff, " мрс");
+  strcat(buff, " мрс");
   //char buff3[16] = {0};
   //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
-  _MeasurementsScreen.PresVal->setLabel(String(buff) + " мрс");
+  _MeasurementsScreen.PresVal->setLabel(buff);
 
+  itoa(_Sensors.GetHumidity(), buff, 10);
+  strcat(buff, " %");
+  //char buff3[16] = {0};
+  //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
+  _MeasurementsScreen.HumidityVal->setLabel(buff);
+
+#ifdef USE_DUST_SENSOR
   memset(buff, 0, sizeof(buff));
   short dustVal = _Sensors.GetDust();
   if(dustVal > 0)
@@ -96,7 +108,7 @@ void loop()
     _MeasurementsScreen.DustVal->setLabel("измеряю");    
     _MeasurementsScreen.DustVal->setTextColor(clrGRAY);
   }
-
+#endif
 
   _Display.update();
   _MeasurementsScreen.update(_Display);
