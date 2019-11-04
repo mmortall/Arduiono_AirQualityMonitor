@@ -3,8 +3,9 @@
 // CO2 sensor
 // EEROM for storing values 
 
-#define USE_SENSORS
+//#define USE_SENSORS
 #define USE_PRESURE_SENSOR
+//#define USE_DUST_SENSOR
 
 #include <SoftwareSerial.h>
 #include "ard_adagfx_ili9341_xpt2046_Display.h"
@@ -65,6 +66,7 @@ void loop()
 #endif
 #endif
 
+#ifdef USE_SENSORS
   char buff[16];
   //memset(&buff[0], 0, sizeof(buff));
   itoa(_Sensors.GetCO2(), buff, 10);
@@ -91,6 +93,7 @@ void loop()
   //char buff3[16] = {0};
   //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
   _MeasurementsScreen.HumidityVal->setLabel(buff);
+#endif  
 
 #ifdef USE_DUST_SENSOR
   memset(buff, 0, sizeof(buff));

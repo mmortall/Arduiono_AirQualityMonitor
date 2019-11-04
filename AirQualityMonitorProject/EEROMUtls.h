@@ -7,12 +7,13 @@
 extEEPROM eep(kbits_512, 1, 64); //one 24LC512 EEPROMS on the bus
 
 #define FILE_VERSION 1
+#define BLOCK_SIZE 8
 
 uint32_t max_size = 0;
 uint16_t max_blocks = 0;
 
-void addDataBlock(uint16_t co2, uint16_t temp, uint8_t hum, uint16_t pres);
-int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint8_t& hum, uint16_t& pres);
+void addDataBlock(uint16_t co2, uint16_t temp, uint16_t hum, uint16_t pres);
+int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint16_t& hum, uint16_t& pres);
 
 uint16_t eep_read_uint16(uint32_t addr)
 {
@@ -99,16 +100,16 @@ void eep_setup()
     Serial.print("Data too long to fit in transmit buffer"); Serial.println(eepStatus);
   if(eepStatus == 2)
     Serial.print("Received NACK on transmit of address"); Serial.println(eepStatus);     
-  } 
 #endif
-
+  } 
+  
   uint16_t hVer = eep_read_header_version();
   if(hVer != FILE_VERSION) //clean eeprom
   {
 #ifdef DEBUG_EEPROM     
     Serial.println("extEEPROM had a swrong data format. Rewriting header");
 #endif    
-    eep_write_clean_header(FILE_VERSION, 10, 7, 0);
+    eep_write_clean_header(FILE_VERSION, 10, BLOCK_SIZE, 0);
   }
   
   hVer = eep_read_header_version();
@@ -135,7 +136,7 @@ void eep_setup()
 
 #ifdef DEBUG_TEST_EEPROM    
     Serial.println("Begin EEPROM test:");
-    eep_write_clean_header(FILE_VERSION, 10, 7, 0); //cleanup
+    eep_write_clean_header(FILE_VERSION, 10, BLOCK_SIZE, 0); //cleanup
     uint16_t max_blocks_to_write = max_blocks;
     uint16_t additinal_orewlap = 20;
     max_blocks_to_write += additinal_orewlap;
@@ -150,7 +151,7 @@ void eep_setup()
     {
       isFailed = true;
       uint16_t val_to_test = i + additinal_orewlap;
-      uint16_t co2; uint16_t temp; uint8_t hum; uint16_t pres;
+      uint16_t co2; uint16_t temp; uint16_t hum; uint16_t pres;
       uint16_t blockPos = i; 
       if(getDataBlock(blockPos, co2, temp, hum, pres) < 0)
       {
@@ -169,7 +170,10 @@ void eep_setup()
       if(pres != 2*val_to_test){
         Serial.print("pres data corrupted: "); Serial.println(pres); Serial.print(" but expected: ");Serial.println(2*val_to_test); break;} 
 
-      isFailed = false;             
+      isFailed = false;          
+
+      if(i == 0)
+         break;
     }
     if(isFailed)
       Serial.print("Test failed"); 
@@ -183,7 +187,7 @@ void eep_setup()
   }
 }
 
-void addDataBlock(uint16_t co2, uint16_t temp, uint8_t hum, uint16_t pres)
+void addDataBlock(uint16_t co2, uint16_t temp, uint16_t hum, uint16_t pres)
 {
   uint16_t hSize = eep_read_header_size();  
   uint16_t blockSize = eep_read_header_block_size();
@@ -195,10 +199,26 @@ void addDataBlock(uint16_t co2, uint16_t temp, uint8_t hum, uint16_t pres)
   Serial.print("Writing block "); Serial.print(fileOffset); Serial.print(" at address "); Serial.print(start_address); Serial.print(" with value: "); Serial.print(co2);
 #endif  
   
-  eep_write_uint16(start_address, co2); start_address+=2;
-  eep_write_uint16(start_address, temp); start_address+=2;
-  eep_write_uint8(start_address, hum); start_address+=1;
-  eep_write_uint16(start_address, pres); start_address+=2;
+  eep_write_uint16(start_address, co2); 
+  uint16_t co2_verify = eep_read_uint16(start_address);
+  start_address+=2;
+  
+  eep_write_uint16(start_address, temp); 
+  uint16_t temp_verify = eep_read_uint16(start_address);
+  start_address+=2;
+  
+  eep_write_uint16(start_address, hum); 
+  uint16_t hum_verify = eep_read_uint16(start_address);
+  start_address+=2;
+  
+#ifdef DEBUG_EEPROM 
+  //Serial.print("co2_verify: "); Serial.print(co2_verify); Serial.print(" temp_verify: "); Serial.print(temp_verify);  
+  //Serial.print(" hum_verify: "); Serial.print(hum); Serial.print(" == "); Serial.println(hum_verify);
+   //Serial.println(); 
+#endif 
+
+  eep_write_uint16(start_address, pres); 
+  start_address+=2;
 
   numOfBlocks += 1;
   if(numOfBlocks > max_blocks)
@@ -223,7 +243,7 @@ void addDataBlock(uint16_t co2, uint16_t temp, uint8_t hum, uint16_t pres)
 #endif    
 }
 
-int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint8_t& hum, uint16_t& pres)
+int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint16_t& hum, uint16_t& pres)
 {
   uint16_t hSize = eep_read_header_size();  
   uint16_t blockSize = eep_read_header_block_size();
@@ -231,7 +251,12 @@ int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint8_t& hum,
   uint16_t fileOffset = eep_read_header_last_block_adress();
 
   if(blockPos >= numOfBlocks)  
+  {
+#ifdef DEBUG_EEPROM     
+    Serial.print("ERROR: blockPos "); Serial.print(blockPos); Serial.print(" >= "); Serial.print(numOfBlocks);
+#endif    
     return -1;
+  }  
 
   uint32_t start_address = 0;
   uint16_t offsetToBlock = numOfBlocks - blockPos;
@@ -254,7 +279,7 @@ int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint8_t& hum,
 
   co2 = eep_read_uint16(start_address); start_address+=2;
   temp = eep_read_uint16(start_address); start_address+=2;
-  hum = eep_read_uint8(start_address); start_address+=1;  
+  hum = eep_read_uint16(start_address); start_address+=2;  
   pres = eep_read_uint16(start_address); start_address+=2;
 
 #ifdef DEBUG_EEPROM    
