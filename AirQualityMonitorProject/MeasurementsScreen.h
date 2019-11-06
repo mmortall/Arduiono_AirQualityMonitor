@@ -14,6 +14,8 @@ public:
   UIElement* PresVal;
   UIElement* HumidityBtn;
   UIElement* HumidityVal;
+  UIElement* QualityBtn;
+  UIElement* QualityVal;  
 #ifdef USE_DUST_SENSOR  
   UIElement* DustBtn;
   UIElement* DustVal;
@@ -25,18 +27,21 @@ public:
     short yOffset = 20;
     short xStartPos = 1;
     short xValPos = 190;
-    CO2Btn = new UIElement("Концентр. CO2: ", xStartPos, yPos, 80, 40); 
+    //CO2Btn = new UIElement("Концентр. CO2: ", xStartPos, yPos, 80, 40); 
     CO2Val = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrRED); 
     yPos += yOffset;
-    TemperBtn = new UIElement("Температура: ", xStartPos, yPos, 80, 40); 
+    //TemperBtn = new UIElement("Температура: ", xStartPos, yPos, 80, 40); 
     TemperVal = new UIElement("25.2", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
-    PresBtn = new UIElement("Атмос. давление: ", xStartPos, yPos, 80, 40); 
+    //PresBtn = new UIElement("Атмос. давление: ", xStartPos, yPos, 80, 40); 
     PresVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
-    HumidityBtn = new UIElement("Влажность: ", xStartPos, yPos, 80, 40); 
+    //HumidityBtn = new UIElement("Влажность: ", xStartPos, yPos, 80, 40); 
     HumidityVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
+    //QualityBtn = new UIElement("Вредные примеси: ", xStartPos, yPos, 80, 40); 
+    QualityVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
+    
 #ifdef USE_DUST_SENSOR    
     DustBtn = new UIElement("Пыль (частицы): ", xStartPos, yPos, 80, 40); 
     DustVal = new UIElement("1234 ppm", xValPos, yPos, 80, 40, clrGREEN); 
@@ -50,14 +55,16 @@ public:
 
 	void update(IDisplay& render) 
 	{
-    CO2Btn->render(render);
+    //CO2Btn->render(render);
     CO2Val->render(render);
-    TemperBtn->render(render);
+    //TemperBtn->render(render);
     TemperVal->render(render);
-    PresBtn->render(render);
+    //PresBtn->render(render);
     PresVal->render(render);
-    HumidityBtn->render(render);
+    //HumidityBtn->render(render);
     HumidityVal->render(render);
+    //QualityBtn->render(render);
+    QualityVal->render(render);    
 #ifdef USE_DUST_SENSOR       
     DustBtn->render(render);
     DustVal->render(render);

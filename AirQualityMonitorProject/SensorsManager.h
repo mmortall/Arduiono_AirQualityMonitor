@@ -92,7 +92,7 @@ public:
     crc++;
 
     //gas sensor
-    float gasSensorValue = max(0, (((float)analogRead(gasPinAnalog)) - 100.0f) / (800.0f - 100.0f) * 100.0f);
+    float gasSensorValue = max(0, (((float)analogRead(gasPinAnalog)) - 250.0f) / (500.0f - 250.0f) * 100.0f);
     m_GAS = gasSensorValue;
     
     if ( !(response[0] == 0xFF && response[1] == 0x86 && response[8] == crc) ) {

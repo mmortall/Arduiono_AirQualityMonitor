@@ -380,6 +380,16 @@ public:
 #endif    
 	}
 
+  virtual void drawLine(short x1, short y1, short x2, short y2, short color)
+  {
+    tft.drawLine(x1, y1, x2, y2, color);
+  }
+
+  virtual void fillRect(short x1, short y1, short x2, short y2, short color)
+  {
+    tft.fillRect(x1, y1, x2, y2, color);
+  }
+
 	virtual bool isTouch() override 
 	{
 		return m_IsTouch;

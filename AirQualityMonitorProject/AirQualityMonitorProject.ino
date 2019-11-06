@@ -3,7 +3,7 @@
 // CO2 sensor
 // EEROM for storing values 
 
-//#define USE_SENSORS
+#define USE_SENSORS
 #define USE_PRESURE_SENSOR
 //#define USE_DUST_SENSOR
 
@@ -71,29 +71,69 @@ void loop()
   //memset(&buff[0], 0, sizeof(buff));
   itoa(_Sensors.GetCO2(), buff, 10);
   strcat(buff, " ppm");
-  //char buff1[16] = {0};
-  //sprintf(buff1, "%d ppm", _Sensors.GetCO2());
   _MeasurementsScreen.CO2Val->setLabel(buff);
 
-  //memset(&buff[0], 0, sizeof(buff));
   dtostrf(_Sensors.GetTemp(), 4, 1, buff);
   strcat(buff, " C");
-  //char buff2[16] = {0};
-  //sprintf(buff2, "%.2d ppm", _Sensors.GetTemp());
   _MeasurementsScreen.TemperVal->setLabel(buff);
 
   dtostrf(_Sensors.GetPresure(), 4, 1, buff);
   strcat(buff, " мрс");
-  //char buff3[16] = {0};
-  //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
   _MeasurementsScreen.PresVal->setLabel(buff);
 
   itoa(_Sensors.GetHumidity(), buff, 10);
   strcat(buff, " %");
-  //char buff3[16] = {0};
-  //sprintf(buff3, "%.2d мрс", _Sensors.GetPresure());
   _MeasurementsScreen.HumidityVal->setLabel(buff);
-#endif  
+
+  itoa(_Sensors.GetGAS(), buff, 10);
+  strcat(buff, " %");
+  _MeasurementsScreen.QualityVal->setLabel(buff);
+
+  addDataBlock(_Sensors.GetCO2(), _Sensors.GetTemp(), _Sensors.GetHumidity(), _Sensors.GetGAS());
+
+  //drawing chart
+  uint16_t numOfBlocks = eep_read_header_num_of_blocks();  
+  uint16_t numOfData = min(320, numOfBlocks);
+  uint16_t i = numOfData-1;
+
+  uint16_t chartH = 110;
+  uint16_t min_co2_val = 5000;
+  uint16_t max_co2_val = 0;
+  while(true)
+  {
+    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t pres;
+    if(getDataBlock(i, co2, temp, hum, pres) < 0)
+      break;
+
+    if(co2 < min_co2_val)
+      min_co2_val = co2;
+    if(co2 > max_co2_val)
+      max_co2_val = co2;
+            
+    if(i == 0)
+      break;
+
+    i--;  
+  }
+
+  _Display.fillRect(0, (int)(240 - chartH), 320, 240, clrBLACK);
+  i = numOfData-1;
+  while(true)
+  {
+    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t pres;
+    if(getDataBlock(i, co2, temp, hum, pres) < 0)
+      break;
+
+    //draw chart 
+    uint16_t co2_on_char = (uint16_t)(chartH * ((float)(co2 - min_co2_val) / (float)(max_co2_val - min_co2_val)));
+    _Display.drawLine(i, 240 - co2_on_char, i, 240, clrRED); 
+
+    if(i == 0)
+      break;
+
+    i--;  
+  }
+#endif
 
 #ifdef USE_DUST_SENSOR
   memset(buff, 0, sizeof(buff));
