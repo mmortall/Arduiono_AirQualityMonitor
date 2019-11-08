@@ -104,8 +104,9 @@ void loop()
   strcat(buff, " мрс");
   _MeasurementsScreen.PresVal->setLabel("Атмос. давление: " + String(buff));
   _MeasurementsScreen.PresVal->setTextColor(clrWHITE);*/
- 
-  _MeasurementsScreen.HumidityVal->setLabel("Влажность: "+ String(_Sensors.GetHumidity()) + String(" %"));
+  
+  dtostrf((float)_Sensors.GetHumidity()/10.0f, 4, 1, buff);
+  _MeasurementsScreen.HumidityVal->setLabel("Влажность: "+ String(buff) + String(" %"));
   _MeasurementsScreen.HumidityVal->setTextColor(GetHumidityColor(_Sensors.GetHumidity()));
  
   _MeasurementsScreen.QualityVal->setLabel("Загрязнен. воздуха: " + String(_Sensors.GetGAS()) + String(" %"));
@@ -187,6 +188,8 @@ void loop()
     };
     
     uint16_t val_on_char = (uint16_t)(chartH * ((float)(val_for_char - min_val) / (float)(max_val - min_val)));
+    if(val_on_char == 0)
+      val_on_char = 1;
     //Display.drawVLine((i - numOfDataEnd), 240 - val_on_char, 240 - val_on_char, bar_color);
     _Display.drawLine(i - numOfDataEnd, 240 - val_on_char, i - numOfDataEnd, 240, bar_color);
     

@@ -70,7 +70,7 @@ short GetAirQualityColor(uint16_t val)
 
 short GetHumidityColor(uint16_t val)
 {
-  return (val > 25 && val < 75) ? clrGREEN : clrRED;
+  return (val >= 350 && val <= 650) ? clrGREEN : ((val >= 200 && val <= 800) ? clrYELLOW : clrRED);
 }
 
 short GetTempQualityColor(uint16_t val)
@@ -129,10 +129,9 @@ public:
       m_CO2ppm = ppm;
     }
 
-  //presure sensor + temperature
     int ths = th.Read();
     switch(ths) {
- #ifdef DEBUG        
+#ifdef DEBUG        
       case 2:      
         Serial.println("CRC failed");
         break;
@@ -149,13 +148,13 @@ public:
         Serial.println("*C");
 #endif     
         m_T1 = th.t;
-        m_Humidity = th.h;
-        m_Temperature = m_T1;   
+        m_Humidity = floor(th.h * 10);  
+        m_Temperature = m_T1; 
         break;
     }
 
 #ifdef USE_PRESURE_SENSOR  
-    //presure sensor
+    //presure sensor + temperature
     if (! baro.begin()) {
 #ifdef DEBUG_PRESURE_SENSOR
       Serial.println("Couldnt find presure sensor");
@@ -295,7 +294,7 @@ private:
 	short m_CO2ppm;
 	float m_Presure;
 	float m_Temperature;
-  short m_Humidity;
+  short m_Humidity; //real hum * 10
   short m_Altitude; //in meters
 	short m_GAS;
 	short m_Dust;

@@ -122,6 +122,9 @@ void eep_setup()
   uint16_t hBlockSize = eep_read_header_block_size();
   uint16_t hNumOfBlocks = eep_read_header_num_of_blocks();
   uint16_t hLastBlockAddr = eep_read_header_last_block_adress();
+  
+  //eep_write_clean_header(FILE_VERSION, HEADER_SIZE, BLOCK_SIZE, 0);
+  
   if(hVer != FILE_VERSION) //clean eeprom
   {
 #ifdef DEBUG_EEPROM     
