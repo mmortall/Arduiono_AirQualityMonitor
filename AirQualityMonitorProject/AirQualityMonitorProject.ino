@@ -4,7 +4,7 @@
 // EEROM for storing values 
 
 #define USE_SENSORS
-#define USE_PRESURE_SENSOR
+//#define USE_PRESURE_SENSOR
 //#define USE_DUST_SENSOR
 
 #include <SoftwareSerial.h>
@@ -100,17 +100,15 @@ void loop()
   _MeasurementsScreen.TemperVal->setLabel("Температура: " + String(buff));
   _MeasurementsScreen.TemperVal->setTextColor(GetTempQualityColor(_Sensors.GetTemp()*10));
 
-  dtostrf(_Sensors.GetPresure(), 4, 1, buff);
+  /*dtostrf(_Sensors.GetPresure(), 4, 1, buff);
   strcat(buff, " мрс");
   _MeasurementsScreen.PresVal->setLabel("Атмос. давление: " + String(buff));
-  _MeasurementsScreen.PresVal->setTextColor(clrWHITE);
+  _MeasurementsScreen.PresVal->setTextColor(clrWHITE);*/
  
-  itoa(_Sensors.GetHumidity(), buff, 10);
-  strcat(buff, " %");
-  _MeasurementsScreen.HumidityVal->setLabel("Влажность: "+ String(buff));
+  _MeasurementsScreen.HumidityVal->setLabel("Влажность: "+ String(_Sensors.GetHumidity()) + String(" %"));
   _MeasurementsScreen.HumidityVal->setTextColor(GetHumidityColor(_Sensors.GetHumidity()));
  
-  _MeasurementsScreen.QualityVal->setLabel("Загрязнение воздуха: " + String(_Sensors.GetGAS()) + String(" %"));
+  _MeasurementsScreen.QualityVal->setLabel("Загрязнен. воздуха: " + String(_Sensors.GetGAS()) + String(" %"));
   _MeasurementsScreen.QualityVal->setTextColor(GetAirQualityColor(_Sensors.GetGAS()));
 
   if(isCO2ready)
@@ -122,7 +120,7 @@ void loop()
   uint16_t numOfDataEnd = ((numOfBlocks <= 320) ? 0 : (numOfBlocks - 320 - 1));
   uint16_t i = numOfData-1;
 
-  uint16_t chartH = 110;
+  uint16_t chartH = 140;
   uint16_t min_val = ~0;
   uint16_t max_val = 0;
   while(true)

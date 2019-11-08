@@ -179,8 +179,7 @@ public:
       if(m_T1 == 0)
         m_T1 = tempC;
         
-      //tempC = (tempC + m_T1) / 2.0f;
-      m_Temperature = m_T1;
+      m_Temperature = (tempC + m_T1) / 2.0f;
     }
 #else
   m_Temperature = m_T1;    

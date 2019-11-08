@@ -40,7 +40,7 @@ public:
     HumidityVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     yPos += yOffset;
     //PresBtn = new UIElement("Атмос. давление: ", xStartPos, yPos, 80, 40); 
-    PresVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
+    //PresVal = new UIElement("-1", xValPos, yPos, 80, 40, clrGREEN); 
     
 #ifdef USE_DUST_SENSOR   
     yPos += yOffset; 
@@ -60,7 +60,7 @@ public:
     //TemperBtn->render(render);
     TemperVal->render(render);
     //PresBtn->render(render);
-    PresVal->render(render);
+    //PresVal->render(render);
     //HumidityBtn->render(render);
     HumidityVal->render(render);
     //QualityBtn->render(render);
