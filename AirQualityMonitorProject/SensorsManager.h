@@ -57,8 +57,28 @@ unsigned long starttime;
 unsigned long endtime;
 #define sampletime_ms (30000L)
 #endif
-////////////////////////////////////////////////////////////////////////////////////
 
+short GetCO2Color(uint16_t val)
+{
+  return val < 900 ? clrGREEN : (val < 1600 ? clrYELLOW : clrRED);
+}
+
+short GetAirQualityColor(uint16_t val)
+{
+  return val < 30 ? clrGREEN : (val < 60 ? clrYELLOW : clrRED);
+}
+
+short GetHumidityColor(uint16_t val)
+{
+  return (val > 25 && val < 75) ? clrGREEN : clrRED;
+}
+
+short GetTempQualityColor(uint16_t val)
+{
+  return (val <= 270 && val >= 200) ? clrGREEN : (val > 270 ? clrRED : clrBLUE);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
 class SensorsManager
 {
 public:
@@ -159,8 +179,8 @@ public:
       if(m_T1 == 0)
         m_T1 = tempC;
         
-      tempC = (tempC + m_T1) / 2.0f;
-      m_Temperature = tempC;
+      //tempC = (tempC + m_T1) / 2.0f;
+      m_Temperature = m_T1;
     }
 #else
   m_Temperature = m_T1;    

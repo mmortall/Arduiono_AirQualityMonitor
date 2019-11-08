@@ -10,6 +10,7 @@ public:
 	virtual void print(String txt) = 0;
 
   virtual void drawLine(short x1, short y1, short x2, short y2, short color) = 0;
+  virtual void drawVLine(uint16_t  x0, uint16_t  y0, uint16_t len, uint16_t color) = 0;
   virtual void fillRect(short x1, short y1, short x2, short y2, short color) = 0;
   
 	virtual bool isTouch() = 0;

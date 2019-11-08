@@ -30,6 +30,20 @@ enum EMenu
   EMenu_Options = 2
 } CurrMenu;
 
+enum ECharts
+{
+  ECharts_None = 0,
+  
+  ECharts_CO2 = 1,
+  ECharts_Quality = 2,
+  ECharts_Temp = 3,
+  ECharts_Humidity = 4,  
+
+  ECharts_Last,
+  ECharts_First = ECharts_CO2,
+  
+} CurrChart;
+
 void setup() {
   Serial.begin(9600);
   eep_setup();
@@ -41,10 +55,11 @@ void setup() {
 
   _Display.init();
   _MeasurementsScreen.init();
+
+  CurrChart = ECharts_First;
 }
 
 int counter = 0;
-
 bool dustSensorUpdate;
 
 void loop() 
@@ -68,49 +83,69 @@ void loop()
 
 #ifdef USE_SENSORS
   char buff[16];
-  //memset(&buff[0], 0, sizeof(buff));
-  itoa(_Sensors.GetCO2(), buff, 10);
-  strcat(buff, " ppm");
-  _MeasurementsScreen.CO2Val->setLabel(buff);
+  bool isCO2ready = _Sensors.GetCO2() > 500;
+  if(isCO2ready)
+  {
+    _MeasurementsScreen.CO2Val->setLabel("Концентр. CO2: " + String(_Sensors.GetCO2()) + String(" ppm"));
+    _MeasurementsScreen.CO2Val->setTextColor(GetCO2Color(_Sensors.GetCO2()));
+  }
+  else
+  {
+     _MeasurementsScreen.CO2Val->setLabel("Концентр. CO2: " + String("измеряю"));
+     _MeasurementsScreen.CO2Val->setTextColor(clrWHITE);
+  }
 
   dtostrf(_Sensors.GetTemp(), 4, 1, buff);
   strcat(buff, " C");
-  _MeasurementsScreen.TemperVal->setLabel(buff);
+  _MeasurementsScreen.TemperVal->setLabel("Температура: " + String(buff));
+  _MeasurementsScreen.TemperVal->setTextColor(GetTempQualityColor(_Sensors.GetTemp()*10));
 
   dtostrf(_Sensors.GetPresure(), 4, 1, buff);
   strcat(buff, " мрс");
-  _MeasurementsScreen.PresVal->setLabel(buff);
-
+  _MeasurementsScreen.PresVal->setLabel("Атмос. давление: " + String(buff));
+  _MeasurementsScreen.PresVal->setTextColor(clrWHITE);
+ 
   itoa(_Sensors.GetHumidity(), buff, 10);
   strcat(buff, " %");
-  _MeasurementsScreen.HumidityVal->setLabel(buff);
+  _MeasurementsScreen.HumidityVal->setLabel("Влажность: "+ String(buff));
+  _MeasurementsScreen.HumidityVal->setTextColor(GetHumidityColor(_Sensors.GetHumidity()));
+ 
+  _MeasurementsScreen.QualityVal->setLabel("Загрязнение воздуха: " + String(_Sensors.GetGAS()) + String(" %"));
+  _MeasurementsScreen.QualityVal->setTextColor(GetAirQualityColor(_Sensors.GetGAS()));
 
-  itoa(_Sensors.GetGAS(), buff, 10);
-  strcat(buff, " %");
-  _MeasurementsScreen.QualityVal->setLabel(buff);
-
-  addDataBlock(_Sensors.GetCO2(), _Sensors.GetTemp(), _Sensors.GetHumidity(), _Sensors.GetGAS());
+  if(isCO2ready)
+    addDataBlock(_Sensors.GetCO2(), (uint16_t)floor(_Sensors.GetTemp()*10), _Sensors.GetHumidity(), _Sensors.GetGAS());
 
   //drawing chart
   uint16_t numOfBlocks = eep_read_header_num_of_blocks();  
-  uint16_t numOfData = min(320, numOfBlocks);
+  uint16_t numOfData = numOfBlocks;
+  uint16_t numOfDataEnd = ((numOfBlocks <= 320) ? 0 : (numOfBlocks - 320 - 1));
   uint16_t i = numOfData-1;
 
   uint16_t chartH = 110;
-  uint16_t min_co2_val = 5000;
-  uint16_t max_co2_val = 0;
+  uint16_t min_val = ~0;
+  uint16_t max_val = 0;
   while(true)
   {
-    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t pres;
-    if(getDataBlock(i, co2, temp, hum, pres) < 0)
+    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t gass;
+    if(getDataBlock(i, co2, temp, hum, gass) < 0)
       break;
 
-    if(co2 < min_co2_val)
-      min_co2_val = co2;
-    if(co2 > max_co2_val)
-      max_co2_val = co2;
+    uint16_t val_for_char = co2;
+    switch(CurrChart)
+    {
+      case ECharts_CO2: val_for_char = co2; break;
+      case ECharts_Quality: val_for_char = gass; break;
+      case ECharts_Temp: val_for_char = temp; break;
+      case ECharts_Humidity: val_for_char = hum; break; 
+    };
+    
+    if(val_for_char < min_val)
+      min_val = val_for_char;
+    if(val_for_char > max_val)
+      max_val = val_for_char;
             
-    if(i == 0)
+    if(i == numOfDataEnd)
       break;
 
     i--;  
@@ -120,15 +155,25 @@ void loop()
   i = numOfData-1;
   while(true)
   {
-    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t pres;
-    if(getDataBlock(i, co2, temp, hum, pres) < 0)
+    uint16_t co2; uint16_t temp; uint16_t hum; uint16_t gass;
+    if(getDataBlock(i, co2, temp, hum, gass) < 0)
       break;
 
     //draw chart 
-    uint16_t co2_on_char = (uint16_t)(chartH * ((float)(co2 - min_co2_val) / (float)(max_co2_val - min_co2_val)));
-    _Display.drawLine(i, 240 - co2_on_char, i, 240, clrRED); 
-
-    if(i == 0)
+    uint16_t val_for_char = co2;
+    short bar_color = clrWHITE;
+    switch(CurrChart)
+    {
+      case ECharts_CO2: val_for_char = co2; bar_color = GetCO2Color(val_for_char); break;
+      case ECharts_Quality: val_for_char = gass; bar_color = GetAirQualityColor(val_for_char); break;
+      case ECharts_Temp: val_for_char = temp; bar_color = GetTempQualityColor(val_for_char); break;
+      case ECharts_Humidity: val_for_char = hum; bar_color = GetHumidityColor(val_for_char); break; 
+    };
+    
+    uint16_t val_on_char = (uint16_t)(chartH * ((float)(val_for_char - min_val) / (float)(max_val - min_val)));
+    _Display.drawVLine((i - numOfDataEnd), 240 - val_on_char, 240 - val_on_char, bar_color);
+    
+    if(i == numOfDataEnd)
       break;
 
     i--;  
@@ -158,4 +203,7 @@ void loop()
 
   delay(300L);
   counter++;
+  CurrChart = (ECharts)((int)CurrChart + 1);
+  if(CurrChart == ECharts_Last)
+    CurrChart = ECharts_First;
 }

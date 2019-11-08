@@ -296,7 +296,9 @@ URTouch  myTouch = URTouch(ttclk, ttcs, ttdin, ttdout, ttirq); //URTouch(byte tc
 #define clrRED ILI9341_RED
 #define clrGREEN ILI9341_GREEN
 #define clrWHITE ILI9341_WHITE
+#define clrBLUE ILI9341_BLUE
 #define clrGRAY ConvertRGB(99, 99, 99)
+#define clrYELLOW ILI9341_YELLOW
 
 word ConvertRGB( byte R, byte G, byte B)
 {
@@ -383,6 +385,11 @@ public:
   virtual void drawLine(short x1, short y1, short x2, short y2, short color)
   {
     tft.drawLine(x1, y1, x2, y2, color);
+  }
+
+  virtual void drawVLine(uint16_t  x0, uint16_t  y0, uint16_t len, uint16_t color)
+  {
+    tft.drawFastVLine(x0, y0, len, color);
   }
 
   virtual void fillRect(short x1, short y1, short x2, short y2, short color)
