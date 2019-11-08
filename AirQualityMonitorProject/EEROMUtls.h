@@ -15,6 +15,7 @@ uint16_t max_blocks = 0;
 
 void addDataBlock(uint16_t co2, uint16_t temp, uint16_t hum, uint16_t pres);
 int getDataBlock(uint16_t blockPos, uint16_t& co2, uint16_t& temp, uint16_t& hum, uint16_t& pres);
+void resetEEPROM();
 
 uint16_t eep_read_uint16(uint32_t addr)
 {
@@ -123,8 +124,6 @@ void eep_setup()
   uint16_t hNumOfBlocks = eep_read_header_num_of_blocks();
   uint16_t hLastBlockAddr = eep_read_header_last_block_adress();
   
-  //eep_write_clean_header(FILE_VERSION, HEADER_SIZE, BLOCK_SIZE, 0);
-  
   if(hVer != FILE_VERSION) //clean eeprom
   {
 #ifdef DEBUG_EEPROM     
@@ -136,7 +135,7 @@ void eep_setup()
     Serial.print("hLastBlockAddr: ");Serial.println(hLastBlockAddr);
     Serial.println(". Rewriting header");
 #endif    
-    eep_write_clean_header(FILE_VERSION, HEADER_SIZE, BLOCK_SIZE, 0);
+    resetEEPROM();
   }
   
   hVer = eep_read_header_version();
@@ -164,7 +163,7 @@ void eep_setup()
 
 #ifdef DEBUG_TEST_EEPROM    
     Serial.println("Begin EEPROM test:");
-    eep_write_clean_header(FILE_VERSION, HEADER_SIZE, BLOCK_SIZE, 0); //cleanup
+    resetEEPROM();
     uint16_t max_blocks_to_write = max_blocks;
     uint16_t additinal_orewlap = 20;
     max_blocks_to_write += additinal_orewlap;
@@ -216,6 +215,11 @@ void eep_setup()
 
     return;
   }
+}
+
+void resetEEPROM()
+{
+    eep_write_clean_header(FILE_VERSION, HEADER_SIZE, BLOCK_SIZE, 0);
 }
 
 void addDataBlock(uint16_t co2, uint16_t temp, uint16_t hum, uint16_t pres)

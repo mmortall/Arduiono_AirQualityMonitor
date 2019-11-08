@@ -58,6 +58,8 @@ unsigned long endtime;
 #define sampletime_ms (30000L)
 #endif
 
+short invalidValueCounter = 0;
+
 short GetCO2Color(uint16_t val)
 {
   return val < 900 ? clrGREEN : (val < 1600 ? clrYELLOW : clrRED);
@@ -147,6 +149,16 @@ public:
         Serial.print(th.t);
         Serial.println("*C");
 #endif     
+        short newHum = floor(th.h * 10);
+        if(m_Humidity > 0 && m_Temperature > -900 && abs(newHum - m_Humidity) > 60 && abs(th.t - m_Temperature) > 20 && invalidValueCounter < 10 )
+        {
+          invalidValueCounter++;
+#ifdef DEBUG        
+          Serial.println("Sensor return invalid value: ");
+#endif          
+          break;
+        }
+        invalidValueCounter = 0;
         m_T1 = th.t;
         m_Humidity = floor(th.h * 10);  
         m_Temperature = m_T1; 

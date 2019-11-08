@@ -22,6 +22,7 @@ ard_adagfx_ili9341_xpt2046_Display _Display = ard_adagfx_ili9341_xpt2046_Display
 #include "MeasurementsScreen.h"
 MeasurementsScreen _MeasurementsScreen = MeasurementsScreen();
 
+#define EEPROM_RESET_PIN 5
 
 enum EMenu
 {
@@ -47,7 +48,9 @@ enum ECharts
 void setup() {
   Serial.begin(9600);
   eep_setup();
-  
+
+  pinMode(EEPROM_RESET_PIN, INPUT); 
+  digitalWrite(EEPROM_RESET_PIN, LOW);
 
 #ifdef USE_SENSORS
   _Sensors.Init();
@@ -64,6 +67,9 @@ bool dustSensorUpdate;
 
 void loop() 
 {
+  if(digitalRead(EEPROM_RESET_PIN) == HIGH)
+    resetEEPROM();
+  
 #ifdef USE_SENSORS
 #ifdef USE_DUST_SENSOR
   if(dustSensorUpdate)
