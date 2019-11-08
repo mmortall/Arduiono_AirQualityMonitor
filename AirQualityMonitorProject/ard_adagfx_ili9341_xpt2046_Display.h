@@ -298,6 +298,7 @@ URTouch  myTouch = URTouch(ttclk, ttcs, ttdin, ttdout, ttirq); //URTouch(byte tc
 #define clrWHITE ILI9341_WHITE
 #define clrBLUE ILI9341_BLUE
 #define clrGRAY ConvertRGB(99, 99, 99)
+#define clrDARKGRAY ConvertRGB(33, 33, 33)
 #define clrYELLOW ILI9341_YELLOW
 
 word ConvertRGB( byte R, byte G, byte B)

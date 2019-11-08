@@ -150,6 +150,7 @@ void loop()
   }
 
   _Display.fillRect(0, (int)(240 - chartH), 320, 240, clrBLACK);
+  _Display.fillRect(310, 20, 312, ((int)ECharts_Last*20) + 2, clrBLACK);
   i = numOfData-1;
   while(true)
   {
@@ -160,16 +161,34 @@ void loop()
     //draw chart 
     uint16_t val_for_char = co2;
     short bar_color = clrWHITE;
+    char dotSize = 4;
     switch(CurrChart)
     {
-      case ECharts_CO2: val_for_char = co2; bar_color = GetCO2Color(val_for_char); break;
-      case ECharts_Quality: val_for_char = gass; bar_color = GetAirQualityColor(val_for_char); break;
-      case ECharts_Temp: val_for_char = temp; bar_color = GetTempQualityColor(val_for_char); break;
-      case ECharts_Humidity: val_for_char = hum; bar_color = GetHumidityColor(val_for_char); break; 
+      case ECharts_CO2: 
+        val_for_char = co2; 
+        bar_color = GetCO2Color(val_for_char); 
+        _Display.fillRect(310, ((int)CurrChart)*20, dotSize, dotSize, clrGRAY);
+        break;
+      case ECharts_Quality: 
+        val_for_char = gass; 
+        bar_color = GetAirQualityColor(val_for_char); 
+        _Display.fillRect(310, ((int)CurrChart)*20, dotSize, dotSize, clrGRAY);
+        break;
+      case ECharts_Temp: 
+        val_for_char = temp; 
+        bar_color = GetTempQualityColor(val_for_char); 
+        _Display.fillRect(310, ((int)CurrChart)*20, dotSize, dotSize, clrGRAY);
+        break;
+      case ECharts_Humidity: 
+        val_for_char = hum; 
+        bar_color = GetHumidityColor(val_for_char); 
+        _Display.fillRect(310, ((int)CurrChart)*20, dotSize, dotSize, clrGRAY);
+        break; 
     };
     
     uint16_t val_on_char = (uint16_t)(chartH * ((float)(val_for_char - min_val) / (float)(max_val - min_val)));
-    _Display.drawVLine((i - numOfDataEnd), 240 - val_on_char, 240 - val_on_char, bar_color);
+    //Display.drawVLine((i - numOfDataEnd), 240 - val_on_char, 240 - val_on_char, bar_color);
+    _Display.drawLine(i - numOfDataEnd, 240 - val_on_char, i - numOfDataEnd, 240, bar_color);
     
     if(i == numOfDataEnd)
       break;
