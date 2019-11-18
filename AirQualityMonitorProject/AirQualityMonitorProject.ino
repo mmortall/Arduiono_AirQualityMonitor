@@ -3,11 +3,18 @@
 // CO2 sensor
 // EEROM for storing values 
 
+//#define DEBUG
+
 #define USE_SENSORS
+#define USE_EEPROM
+#define USE_AM2320_TEMP_HUM_SENSOR
 //#define USE_PRESURE_SENSOR
 //#define USE_DUST_SENSOR
 
+#ifdef DEBUG
 #include <SoftwareSerial.h>
+#endif
+
 #include "ard_adagfx_ili9341_xpt2046_Display.h"
 
 #include "EEROMUtls.h"
@@ -45,9 +52,17 @@ enum ECharts
   
 } CurrChart;
 
-void setup() {
+void setup() 
+{
+  delay(500L);
+#ifdef DEBUG
   Serial.begin(9600);
+  Serial.print("Arduino setup"); Serial.println();
+#endif
+
+#ifdef USE_EEPROM
   eep_setup();
+#endif
 
   pinMode(EEPROM_RESET_PIN, INPUT); 
   digitalWrite(EEPROM_RESET_PIN, LOW);
@@ -67,6 +82,11 @@ bool dustSensorUpdate;
 
 void loop() 
 {
+#ifdef DEBUG
+  Serial.print("Arduino loop 1"); Serial.println();
+#endif
+  //return;
+  
   if(digitalRead(EEPROM_RESET_PIN) == HIGH)
     resetEEPROM();
   
@@ -85,6 +105,10 @@ void loop()
 #else
     _Sensors.Update();
 #endif
+#endif
+
+#ifdef DEBUG
+  Serial.print("Arduino loop 2"); Serial.println();
 #endif
 
 #ifdef USE_SENSORS
@@ -118,8 +142,13 @@ void loop()
   _MeasurementsScreen.QualityVal->setLabel("Загрязнен. воздуха: " + String(_Sensors.GetGAS()) + String(" %"));
   _MeasurementsScreen.QualityVal->setTextColor(GetAirQualityColor(_Sensors.GetGAS()));
 
+#ifdef DEBUG
+  Serial.print("Arduino loop 3"); Serial.println();
+#endif
+
+#ifdef USE_EEPROM
   if(isCO2ready)
-    addDataBlock(_Sensors.GetCO2(), (uint16_t)floor(_Sensors.GetTemp()*10), _Sensors.GetHumidity(), _Sensors.GetGAS());
+    addDataBlock(_Sensors.GetCO2(), (uint16_t)floor(_Sensors.GetTemp()*10), _Sensors.GetHumidity(), _Sensors.GetGAS());   
 
   //drawing chart
   uint16_t numOfBlocks = eep_read_header_num_of_blocks();  
@@ -205,6 +234,7 @@ void loop()
     i--;  
   }
 #endif
+#endif 
 
 #ifdef USE_DUST_SENSOR
   memset(buff, 0, sizeof(buff));
@@ -232,4 +262,9 @@ void loop()
   CurrChart = (ECharts)((int)CurrChart + 1);
   if(CurrChart == ECharts_Last)
     CurrChart = ECharts_First;
+
+
+#ifdef DEBUG
+  Serial.print("Arduino loop: done"); Serial.println();
+#endif    
 }

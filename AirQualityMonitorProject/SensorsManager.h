@@ -2,9 +2,7 @@
 #define SENSORS_MANAGER_H
 
 #include <Arduino.h>
-#if DEBUG
 #include <SoftwareSerial.h>
-#endif
 
 #include <Wire.h>
 #include <AM2320.h>
@@ -91,21 +89,42 @@ public:
 
 	void Init() 
 	{
-    mySerial.begin(9600);
+#ifdef DEBUG
+  Serial.print("Sensors init 1"); Serial.println();
+#endif
+
+  mySerial.begin(9600);
+  Wire.begin();
+
+#ifdef DEBUG
+  Serial.print("Sensors init 2"); Serial.println();
+#endif  
 
 #ifdef USE_DUST_SENSOR
     pinMode(pinV1,INPUT);
     pinMode(pinV2,INPUT);
     starttime = millis(); 
 #endif
+
+#ifdef DEBUG
+  Serial.print("Sensors init: done"); Serial.println();
+#endif  
 	};
   
 	void Update() 
 	{
+#ifdef DEBUG
+  Serial.print("Sensors update 1"); Serial.println();
+#endif  
+  
     //read data from CO2 sensor
     mySerial.write(cmd, 9);
     memset(response, 0, 9);
     mySerial.readBytes(response, 9);
+
+#ifdef DEBUG
+  Serial.print("Sensors update 2"); Serial.println();
+#endif      
   
     int i;
     byte crc = 0;
@@ -116,6 +135,9 @@ public:
     //gas sensor
     float gasSensorValue = max(0, (((float)analogRead(gasPinAnalog)) - 250.0f) / (500.0f - 250.0f) * 100.0f);
     m_GAS = gasSensorValue;
+#ifdef DEBUG
+  Serial.print("m_GAS: "); Serial.println(m_GAS);
+#endif
     
     if ( !(response[0] == 0xFF && response[1] == 0x86 && response[8] == crc) ) {
 #ifdef DEBUG      
@@ -123,15 +145,32 @@ public:
 #endif      
 
       m_CO2ppm = -1;
-    } else {
+    } 
+    else 
+    {
       unsigned int responseHigh = (unsigned int) response[2];
       unsigned int responseLow = (unsigned int) response[3];
       unsigned int ppm = (256*responseHigh) + responseLow;
 
       m_CO2ppm = ppm;
+
+#ifdef DEBUG      
+      Serial.println("Get CO2 val: " + String(ppm));
+      Serial.println("Get CO2 responseHigh: " + String(responseHigh));
+      Serial.println("Get CO2 responseLow: " + String(responseLow));
+#endif 
     }
 
+#ifdef DEBUG
+  Serial.print("Sensors update 3"); Serial.println();
+#endif  
+
+#ifdef USE_AM2320_TEMP_HUM_SENSOR
     int ths = th.Read();
+#ifdef DEBUG
+  Serial.print("Sensors update 4"); Serial.println();
+#endif  
+    
     switch(ths) {
 #ifdef DEBUG        
       case 2:      
@@ -164,6 +203,10 @@ public:
         m_Temperature = m_T1; 
         break;
     }
+#endif
+#ifdef DEBUG
+  Serial.print("Sensors update 4"); Serial.println();
+#endif      
 
 #ifdef USE_PRESURE_SENSOR  
     //presure sensor + temperature
@@ -194,7 +237,11 @@ public:
     }
 #else
   m_Temperature = m_T1;    
-#endif    
+#endif  
+
+  #ifdef DEBUG
+  Serial.print("Sensors update: done"); Serial.println();
+#endif  
 	};
 
   bool DustSensorUpdate()

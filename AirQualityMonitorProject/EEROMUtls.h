@@ -101,7 +101,17 @@ void eep_write_clean_header(uint16_t vers, uint16_t header_size, uint16_t block_
 void eep_setup()
 {
   delay(100);
+#ifdef DEBUG
+  Serial.print("eep_setup"); Serial.println();
+#endif
+  
   uint8_t eepStatus = eep.begin();
+  
+#ifdef DEBUG
+  //Serial.print("eep_setup done"); Serial.println();
+  Serial.print("EEPROM Inited with status:"); Serial.println(eepStatus);
+#endif
+  
   if (eepStatus != 0) {
     
 #ifdef DEBUG_EEPROM    
